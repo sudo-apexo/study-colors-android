@@ -1,0 +1,46 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'io.github.sudoapexo.studycolors'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'io.github.sudoapexo.studycolors'
+        minSdk 26
+        targetSdk 35
+        // Every build on GitHub gets a higher number, so a new APK always installs over the old one.
+        versionCode Integer.parseInt(System.getenv('GITHUB_RUN_NUMBER') ?: '1')
+        versionName '1.1.2'
+    }
+
+    signingConfigs {
+        release {
+            // A fixed key kept in the repository, so every build is signed the same way
+            // and updates install over older versions without losing your subjects.
+            storeFile file('../study-colors.keystore')
+            storePassword 'studycolors'
+            keyAlias 'studycolors'
+            keyPassword 'studycolors'
+        }
+    }
+
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
+            minifyEnabled false
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation 'androidx.core:core:1.13.1'
+    implementation 'androidx.activity:activity:1.9.3'
+    implementation 'androidx.webkit:webkit:1.12.1'
+}

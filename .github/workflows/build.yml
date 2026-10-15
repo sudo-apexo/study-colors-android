@@ -1,0 +1,55 @@
+name: Build APK
+
+# Builds the app on GitHub every time you change something, and puts the
+# finished file on the Releases page. Nothing to install on your computer.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get the code
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up the Android tools
+        uses: android-actions/setup-android@v3
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+
+      - name: Build the app
+        run: gradle assembleRelease --no-daemon --stacktrace
+
+      - name: Name the file
+        run: cp app/build/outputs/apk/release/app-release.apk StudyColors.apk
+
+      - name: Keep a copy on this run
+        uses: actions/upload-artifact@v4
+        with:
+          name: StudyColors-apk
+          path: StudyColors.apk
+
+      - name: Put the APK on the Releases page
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git tag -f latest
+          git push -f origin latest
+          gh release view latest >/dev/null 2>&1 || gh release create latest \
+            --title "Study Colors (latest build)" \
+            --notes "The newest build of the app. Download StudyColors.apk and open it on your phone."
+          gh release upload latest StudyColors.apk --clobber
