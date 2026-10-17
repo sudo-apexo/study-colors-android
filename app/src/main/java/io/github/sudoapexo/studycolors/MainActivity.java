@@ -11,6 +11,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
+import android.os.CancellationSignal;
 import android.os.Bundle;
 import android.view.View;
 import android.webkit.JavascriptInterface;
@@ -28,7 +29,17 @@ import androidx.activity.ComponentActivity;
 import androidx.activity.OnBackPressedCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
+import androidx.credentials.Credential;
+import androidx.credentials.CredentialManager;
+import androidx.credentials.CredentialManagerCallback;
+import androidx.credentials.CustomCredential;
+import androidx.credentials.GetCredentialRequest;
+import androidx.credentials.GetCredentialResponse;
+import androidx.credentials.exceptions.GetCredentialCancellationException;
+import androidx.credentials.exceptions.GetCredentialException;
+import androidx.credentials.exceptions.NoCredentialException;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -36,6 +47,9 @@ import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.webkit.WebSettingsCompat;
 import androidx.webkit.WebViewAssetLoader;
 import androidx.webkit.WebViewFeature;
+
+import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption;
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -67,6 +81,9 @@ public class MainActivity extends ComponentActivity {
     private static final Pattern STATE_FORMAT = Pattern.compile("^[a-f0-9]{16,64}$");
     private static final Pattern TOKEN_FORMAT =
             Pattern.compile("^[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$");
+    private static final Pattern WEB_CLIENT_FORMAT =
+            Pattern.compile("^[0-9]+-[a-z0-9]+\\.apps\\.googleusercontent\\.com$");
+    private CancellationSignal googleSignal;
     private String pendingGoogleToken;
     private long pendingGoogleTokenAt;
 
@@ -271,6 +288,10 @@ public class MainActivity extends ComponentActivity {
 
     @Override
     protected void onDestroy() {
+        if (googleSignal != null) {
+            googleSignal.cancel();
+            googleSignal = null;
+        }
         if (fileCallback != null) {
             fileCallback.onReceiveValue(null);
             fileCallback = null;
@@ -308,6 +329,61 @@ public class MainActivity extends ComponentActivity {
     private void sendNotificationResult(String state) {
         webView.evaluateJavascript(
                 "window.__studyNotifResult&&window.__studyNotifResult('" + state + "')", null);
+    }
+
+    private void notifyGoogleToken() {
+        webView.evaluateJavascript("window.__studyGoogleNotify&&window.__studyGoogleNotify()", null);
+    }
+
+    private void sendGoogleError(String code) {
+        webView.evaluateJavascript(
+                "window.__studyGoogleError&&window.__studyGoogleError('" + code + "')", null);
+    }
+
+    /** Shows the phone's own Google account picker and hands the ID token to the page. */
+    private void nativeGoogleSignIn(String webClientId) {
+        if (googleSignal != null) {
+            googleSignal.cancel();
+        }
+        googleSignal = new CancellationSignal();
+        CredentialManager manager = CredentialManager.create(this);
+        GetSignInWithGoogleOption option = new GetSignInWithGoogleOption.Builder(webClientId).build();
+        GetCredentialRequest request = new GetCredentialRequest.Builder()
+                .addCredentialOption(option)
+                .build();
+        manager.getCredentialAsync(this, request, googleSignal, ContextCompat.getMainExecutor(this),
+                new CredentialManagerCallback<GetCredentialResponse, GetCredentialException>() {
+                    @Override
+                    public void onResult(GetCredentialResponse result) {
+                        Credential credential = result.getCredential();
+                        if (credential instanceof CustomCredential
+                                && GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
+                                        .equals(credential.getType())) {
+                            try {
+                                GoogleIdTokenCredential google = GoogleIdTokenCredential
+                                        .createFrom(((CustomCredential) credential).getData());
+                                pendingGoogleToken = google.getIdToken();
+                                pendingGoogleTokenAt = System.currentTimeMillis();
+                                notifyGoogleToken();
+                                return;
+                            } catch (RuntimeException ignored) {
+                                // Falls through to the error below.
+                            }
+                        }
+                        sendGoogleError("native-failed");
+                    }
+
+                    @Override
+                    public void onError(GetCredentialException e) {
+                        if (e instanceof GetCredentialCancellationException) {
+                            sendGoogleError("cancelled");
+                        } else if (e instanceof NoCredentialException) {
+                            sendGoogleError("no-account");
+                        } else {
+                            sendGoogleError("native-failed");
+                        }
+                    }
+                });
     }
 
     private static String safeFileName(String name) {
@@ -375,7 +451,13 @@ public class MainActivity extends ComponentActivity {
         }
 
         @JavascriptInterface
-        public void googleSignIn(String helperUrl) {
+        public void googleSignIn(String helperUrl, String webClientId) {
+            // Preferred: the phone's own account picker, when the Web client ID is configured.
+            if (webClientId != null && WEB_CLIENT_FORMAT.matcher(webClientId).matches()) {
+                final String clientId = webClientId;
+                runOnUiThread(() -> nativeGoogleSignIn(clientId));
+                return;
+            }
             final Uri base;
             try {
                 base = Uri.parse(helperUrl);

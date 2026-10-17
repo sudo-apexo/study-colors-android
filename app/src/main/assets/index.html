@@ -556,7 +556,7 @@ kbd{font:inherit;font-size:calc(12px*var(--ts));padding:2px 8px;border:1px solid
   </form>
 
   <div class="acct-stack" id="acctWait" hidden>
-    <p class="acct-msg">Finish signing in with Google in your browser, then come back here. This window updates by itself.</p>
+    <p class="acct-msg">Finish signing in with Google, then come back here. This window updates by itself.</p>
     <div class="actions"><button class="btn state" id="acctWaitCancel" type="button">Cancel</button></div>
   </div>
 
@@ -1814,6 +1814,8 @@ kbd{font:inherit;font-size:calc(12px*var(--ts));padding:2px 8px;border:1px solid
   }
   function friendlyGoogleError(e){
     var m = String((e && e.message) || "");
+    if (/no-account/.test(m)) return "No Google account was found on this phone. Add one in your phone settings, or sign in with email.";
+    if (/native-failed/.test(m)) return "Google sign-in failed. Check your internet connection and try again.";
     if (/timeout/.test(m)) return "Google sign-in took too long. Try again.";
     if (/listen-failed/.test(m)) return "Could not start the sign-in listener on this computer.";
     if (/open-failed/.test(m)) return "Could not open your browser.";
@@ -1945,7 +1947,7 @@ kbd{font:inherit;font-size:calc(12px*var(--ts));padding:2px 8px;border:1px solid
         job.resolve = resolve;
         job.reject = reject;
         job.timer = setTimeout(function(){ reject(new Error("timeout")); }, 10 * 60 * 1000);
-        window.AndroidBridge.googleSignIn(url);
+        window.AndroidBridge.googleSignIn(url, window.STUDY_GOOGLE_WEB_CLIENT_ID || "");
       });
     }
     return Promise.reject(new Error("unavailable"));
@@ -1985,6 +1987,10 @@ kbd{font:inherit;font-size:calc(12px*var(--ts));padding:2px 8px;border:1px solid
   }
   $("acctGoogle").addEventListener("click", startGoogle);
   // Android calls this when the browser hands the sign-in token back to the app.
+  // Android calls this when the on-phone Google account picker fails or is closed.
+  window.__studyGoogleError = function(code){
+    if (acct.google && acct.google.reject) acct.google.reject(new Error(String(code || "native-failed")));
+  };
   window.__studyGoogleNotify = function(){
     var t = "";
     try { t = (window.AndroidBridge && typeof window.AndroidBridge.takeGoogleToken !== "undefined" && window.AndroidBridge.takeGoogleToken()) || ""; } catch(e){}

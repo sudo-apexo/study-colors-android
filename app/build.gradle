@@ -12,7 +12,7 @@ android {
         targetSdk 35
         // Every build on GitHub gets a higher number, so a new APK always installs over the old one.
         versionCode Integer.parseInt(System.getenv('GITHUB_RUN_NUMBER') ?: '1')
-        versionName '1.3.3'
+        versionName '1.3.4'
     }
 
     signingConfigs {
@@ -46,4 +46,9 @@ dependencies {
     implementation 'androidx.core:core:1.13.1'
     implementation 'androidx.activity:activity:1.9.3'
     implementation 'androidx.webkit:webkit:1.12.1'
+
+    // The phone's own Google account picker ("Continue with Google").
+    implementation 'androidx.credentials:credentials:1.3.0'
+    implementation 'androidx.credentials:credentials-play-services-auth:1.3.0'
+    implementation 'com.google.android.libraries.identity.googleid:googleid:1.1.1'
 }
