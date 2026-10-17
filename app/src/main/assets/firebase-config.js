@@ -1,15 +1,14 @@
 // Your Firebase project settings. These values are public identifiers, not passwords:
 // what protects your data is the rule in firestore.rules (only you can read your own subjects).
 //
-// Replace every PASTE... value with the one from Firebase (see SETUP-ACCOUNTS.md).
-// Until then the app works normally, without accounts or sync.
+// Filled in from the study-colors Firebase project (see SETUP-ACCOUNTS.md).
 window.STUDY_FIREBASE_CONFIG = {
-  apiKey: "PASTE_API_KEY",
-  authDomain: "PASTE_PROJECT_ID.firebaseapp.com",
-  projectId: "PASTE_PROJECT_ID",
-  appId: "PASTE_APP_ID",
-  storageBucket: "",
-  messagingSenderId: ""
+  apiKey: "AIzaSyDwjmxlpcHnfXig292UxH9yv72hcwzmHHg",
+  authDomain: "study-colors.firebaseapp.com",
+  projectId: "study-colors",
+  appId: "1:992844163133:web:522af0766e14b322a5e254",
+  storageBucket: "study-colors.firebasestorage.app",
+  messagingSenderId: "992844163133"
 };
 
 // The page that handles "Continue with Google" (served by GitHub Pages from this repository).
