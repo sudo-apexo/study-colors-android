@@ -85,7 +85,9 @@ button{cursor:pointer;border:0;background:none;padding:0}
   flex:none;font-size:12px;line-height:16px;color:var(--on-surface-variant);
   padding:6px 10px;border-radius:8px;border:1px solid var(--outline-variant);
 }
-.sync[data-mode="cloud"]{color:var(--on-primary-container);background:var(--primary-container);border-color:transparent}
+.sync[data-mode="synced"],.sync[data-mode="cloud"]{color:var(--on-primary-container);background:var(--primary-container);border-color:transparent}
+.sync{cursor:pointer;min-height:36px;display:inline-flex;align-items:center}
+.sync[data-mode="signedout"]{color:var(--primary);border-color:var(--primary)}
 .sync[data-mode="error"]{color:var(--on-error-container);background:var(--error-container);border-color:transparent}
 
 main{padding-block:20px 112px;display:flex;flex-direction:column;gap:16px}
@@ -269,6 +271,23 @@ body.dragging-now,body.dragging-now *{cursor:grabbing!important;-webkit-user-sel
 .keys dd{margin:0;color:var(--on-surface-variant)}
 kbd{font:inherit;font-size:12px;padding:2px 8px;border:1px solid var(--outline);border-radius:6px;background:var(--sc)}
 
+.dialog{max-height:calc(100% - 32px);overflow-y:auto}
+.acct-stack{display:flex;flex-direction:column;gap:14px;margin:0}
+.acct-stack .btn{height:48px;border-radius:24px}
+.acct-stack .btn.small{height:36px;border-radius:18px}
+.btn.block{width:100%}
+.btn.outlined{border:1px solid var(--outline);color:var(--on-surface)}
+.acct-msg{margin:0;font-size:12px;line-height:18px;overflow-wrap:anywhere;color:var(--on-surface-variant)}
+.acct-msg.err{color:var(--error)}
+.acct-links{display:flex;flex-wrap:wrap;gap:4px 8px;justify-content:space-between}
+.divider{display:flex;align-items:center;gap:12px;color:var(--on-surface-variant);font-size:12px;margin-bottom:14px}
+.divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--outline-variant)}
+.acct-id{display:flex;align-items:center;gap:16px;min-width:0}
+.avatar{flex:none;width:48px;height:48px;border-radius:50%;display:grid;place-items:center;font-size:20px;text-transform:uppercase;background:var(--primary-container);color:var(--on-primary-container)}
+.acct-id .who{min-width:0;display:flex;flex-direction:column}
+.acct-id .who b{font-weight:400;font-size:16px;line-height:22px;overflow-wrap:anywhere}
+.acct-id .who span{font-size:12px;line-height:18px;color:var(--on-surface-variant)}
+
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{transition-duration:0.01ms!important;animation-duration:0.01ms!important}
 }
@@ -286,7 +305,7 @@ kbd{font:inherit;font-size:12px;padding:2px 8px;border:1px solid var(--outline);
       <rect x="0" y="6.4" width="2.6" height="2.6" fill="#2E7D32"/><rect x="3.2" y="6.4" width="2.6" height="2.6" fill="#D32F2F"/><rect x="6.4" y="6.4" width="2.6" height="2.6" fill="#00ACC1"/>
     </svg>
     <h1>Study Colors</h1>
-    <span class="sync" id="sync" data-mode="local" aria-live="polite" title="Where your subjects are saved">This device</span>
+    <button class="sync state" id="sync" type="button" data-mode="local" title="Where your subjects are saved">This device</button>
     <button class="iconbtn state" id="themeBtn" type="button" aria-label="Change theme" title="Theme"></button>
   </div>
 </header>
@@ -402,6 +421,58 @@ kbd{font:inherit;font-size:12px;padding:2px 8px;border:1px solid var(--outline);
   <div class="actions"><button class="btn state" id="helpClose" type="button">Close</button></div>
 </div>
 
+<div class="dialog" id="account" role="dialog" aria-modal="true" aria-labelledby="acctTitle" hidden>
+  <h2 id="acctTitle">Account</h2>
+
+  <div class="acct-stack" id="acctSetup" hidden>
+    <p class="acct-msg" id="acctSetupMsg">Accounts are not set up yet, so your subjects are saved on this device only.</p>
+    <p class="acct-msg">To turn on sign-in and sync, add your Firebase settings to firebase-config.js. SETUP-ACCOUNTS.md explains every step.</p>
+    <div class="actions"><button class="btn state" id="acctSetupClose" type="button">OK</button></div>
+  </div>
+
+  <form class="acct-stack" id="acctForm" novalidate hidden>
+    <p class="acct-msg" id="acctIntro"></p>
+    <div class="field">
+      <input id="acctEmail" type="email" inputmode="email" autocomplete="username" autocapitalize="off" spellcheck="false" placeholder=" ">
+      <label for="acctEmail">Email</label>
+    </div>
+    <div class="field" id="acctPwField">
+      <input id="acctPw" type="password" autocomplete="current-password" placeholder=" ">
+      <label for="acctPw">Password</label>
+    </div>
+    <p class="acct-msg" id="acctMsg" role="alert" hidden></p>
+    <button class="btn filled block state" id="acctSubmit" type="submit">Sign in</button>
+    <div class="acct-links">
+      <button class="btn small state" id="acctLinkA" type="button"></button>
+      <button class="btn small state" id="acctLinkB" type="button"></button>
+    </div>
+    <div id="acctGoogleWrap" hidden>
+      <div class="divider">or</div>
+      <button class="btn outlined block state" id="acctGoogle" type="button">Continue with Google</button>
+    </div>
+    <button class="btn state" id="acctNotNow" type="button">Not now</button>
+  </form>
+
+  <div class="acct-stack" id="acctWait" hidden>
+    <p class="acct-msg">Finish signing in with Google in your browser, then come back here. This window updates by itself.</p>
+    <div class="actions"><button class="btn state" id="acctWaitCancel" type="button">Cancel</button></div>
+  </div>
+
+  <div class="acct-stack" id="acctIn" hidden>
+    <div class="acct-id">
+      <div class="avatar" id="acctAvatar"></div>
+      <div class="who"><b id="acctWho"></b><span id="acctStatus"></span></div>
+    </div>
+    <p class="acct-msg err" id="acctSyncErr" hidden></p>
+    <button class="btn outlined block state" id="acctRetry" type="button" hidden>Try syncing again</button>
+    <button class="btn outlined block state" id="acctOut" type="button">Sign out</button>
+    <button class="btn error block state" id="acctOutClear" type="button">Sign out and clear this device</button>
+    <div class="actions"><button class="btn state" id="acctClose" type="button">Close</button></div>
+  </div>
+</div>
+
+<script src="firebase-config.js"></script>
+<script src="study-sync.js"></script>
 <script>
 (function(){
   "use strict";
@@ -445,6 +516,7 @@ kbd{font:inherit;font-size:12px;padding:2px 8px;border:1px solid var(--outline);
   var hintEl = $("hint"), nextEl = $("next"), toastEl = $("toast"), themeBtn = $("themeBtn");
   var noteInput = $("noteInput"), examInput = $("examInput"), importFile = $("importFile");
   var helpDlg = $("help"), remindBtn = $("remindBtn");
+  var accountDlg = $("account");
   var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   function icon(path){
@@ -483,19 +555,32 @@ kbd{font:inherit;font-size:12px;padding:2px 8px;border:1px solid var(--outline);
     try { localStorage.setItem(PREFS_KEY, JSON.stringify(prefs)); } catch(e){}
   }
 
-  function sanitize(d){
+  function sanitize(d, fromCloud){
     if (!d || !Array.isArray(d.subjects)) return null;
-    var out = [];
+    var out = [], seenIds = {};
     d.subjects.forEach(function(s){
       if (!s || typeof s.name !== "string") return;
-      var o = { id: String(s.id || uid()), name: s.name.slice(0,40), color: BYKEY[s.color] ? s.color : "" };
-      if (s.ex) o.ex = true;
+      var id = String(s.id || uid());
+      if (seenIds[id]) return;
+      seenIds[id] = true;
+      var o = { id: id, name: s.name.slice(0,40), color: BYKEY[s.color] ? s.color : "" };
+      if (s.ex && !fromCloud) o.ex = true;
       if (typeof s.note === "string" && s.note.trim()) o.note = s.note.slice(0,500);
       if (typeof s.exam === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s.exam)) o.exam = s.exam;
       if (typeof s.t === "number" && isFinite(s.t)) o.t = s.t;
+      if (typeof s.m === "number" && isFinite(s.m)) o.m = s.m;
       out.push(o);
     });
-    return { subjects: out, seeded: true };
+    var deleted = {};
+    if (d.deleted && typeof d.deleted === "object" && !Array.isArray(d.deleted)){
+      Object.keys(d.deleted).slice(0, 5000).forEach(function(k){
+        var v = d.deleted[k];
+        if (typeof v === "number" && isFinite(v)) deleted[k] = v;
+      });
+    }
+    var res = { subjects: out, seeded: true, deleted: deleted, orderAt: (typeof d.orderAt === "number" && isFinite(d.orderAt)) ? d.orderAt : 0 };
+    if (!fromCloud && typeof d.owner === "string" && d.owner) res.owner = d.owner;
+    return res;
   }
   function readLocal(){
     try {
@@ -507,17 +592,15 @@ kbd{font:inherit;font-size:12px;padding:2px 8px;border:1px solid var(--outline);
   function saveLocal(){
     try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){}
   }
-  function snapshotKey(s){ return JSON.stringify({ s: s.subjects, d: !!s.seeded }); }
 
   state = readLocal();
-  if (state) booted = true; else state = { subjects: [], seeded: false };
+  if (state) booted = true; else state = { subjects: [], seeded: false, deleted: {}, orderAt: 0 };
 
   function seedIfNeeded(){
     if (booted) return;
     if (!state.seeded){
-      state = { seeded: true, subjects: EXAMPLES.map(function(e){ return { id: uid(), name: e[0], color: e[1], ex: true }; }) };
+      state = { seeded: true, deleted: {}, orderAt: 0, subjects: EXAMPLES.map(function(e){ return { id: uid(), name: e[0], color: e[1], ex: true }; }) };
       saveLocal();
-      pushRemote();
     }
     resetHistory();
     booted = true;
@@ -525,70 +608,219 @@ kbd{font:inherit;font-size:12px;padding:2px 8px;border:1px solid var(--outline);
   }
   setTimeout(seedIfNeeded, 2500);
 
-  /* ---------- sync (private per-person store, with a local fallback) ---------- */
-  var dbDoc = null, writing = false, queued = false, firstSnap = false;
+  /* ---------- merging (what keeps two devices from overwriting each other) ---------- */
+  // Every subject carries m (last change time). Deleting leaves a small marker in state.deleted.
+  // Merging keeps the newest copy of each subject, so a stale device can never wipe newer work.
+  var lastTick = 0;
+  function tick(){ lastTick = Math.max(Date.now(), lastTick + 1); return lastTick; }
+  function ser(v){
+    if (v === null || typeof v !== "object") return JSON.stringify(v);
+    if (Array.isArray(v)) return "[" + v.map(ser).join(",") + "]";
+    return "{" + Object.keys(v).sort().map(function(k){ return JSON.stringify(k) + ":" + ser(v[k]); }).join(",") + "}";
+  }
+  function stateKey(st){ return ser({ s: st.subjects, d: st.deleted, o: st.orderAt }); }
+  function withoutM(s){ var o = {}; for (var k in s) if (k !== "m") o[k] = s[k]; return o; }
+  function emptyDoc(){ return { subjects: [], deleted: {}, orderAt: 0 }; }
+  function cloudView(st){
+    return { subjects: st.subjects.filter(function(s){ return !s.ex; }), deleted: st.deleted, orderAt: st.orderAt };
+  }
+  function mergeStates(a, b){
+    var deleted = {};
+    [a.deleted || {}, b.deleted || {}].forEach(function(d){
+      Object.keys(d).forEach(function(k){ if (!(k in deleted) || d[k] > deleted[k]) deleted[k] = d[k]; });
+    });
+    var byId = {};
+    function take(s){
+      var cur = byId[s.id];
+      if (!cur || (s.m || 0) > (cur.m || 0)) byId[s.id] = s;
+    }
+    a.subjects.forEach(take);
+    b.subjects.forEach(take);
+    var remoteFirst = (b.orderAt || 0) > (a.orderAt || 0);
+    var order = remoteFirst ? b.subjects.concat(a.subjects) : a.subjects.concat(b.subjects);
+    var out = [], seen = {};
+    order.forEach(function(s){
+      if (seen[s.id]) return;
+      seen[s.id] = true;
+      var item = byId[s.id];
+      if (deleted[s.id] != null && deleted[s.id] >= (item.m || 0)) return;
+      out.push(item);
+    });
+    out.forEach(function(s){ if (deleted[s.id] != null) delete deleted[s.id]; });
+    var keys = Object.keys(deleted);
+    if (keys.length > 500){
+      keys.sort(function(x, y){ return (deleted[y] - deleted[x]) || (x < y ? -1 : 1); });
+      var keep = {};
+      keys.slice(0, 500).forEach(function(k){ keep[k] = deleted[k]; });
+      deleted = keep;
+    }
+    return { subjects: out, deleted: deleted, orderAt: Math.max(a.orderAt || 0, b.orderAt || 0) };
+  }
+  // Called after any change made on this device: marks what changed, and what was deleted or reordered.
+  function stamp(prevSubjects){
+    var now = tick();
+    var prev = {}, cur = {};
+    prevSubjects.forEach(function(s){ prev[s.id] = s; });
+    state.subjects.forEach(function(s){
+      cur[s.id] = true;
+      var p = prev[s.id];
+      if (!p || ser(withoutM(p)) !== ser(withoutM(s))) s.m = now;
+      if (state.deleted[s.id] != null && state.deleted[s.id] < (s.m || 0)) delete state.deleted[s.id];
+    });
+    prevSubjects.forEach(function(p){
+      if (!cur[p.id] && !p.ex) state.deleted[p.id] = now;
+    });
+    var a = prevSubjects.filter(function(s){ return cur[s.id]; }).map(function(s){ return s.id; }).join("|");
+    var b = state.subjects.filter(function(s){ return prev[s.id]; }).map(function(s){ return s.id; }).join("|");
+    if (a !== b) state.orderAt = now;
+  }
 
-  function setSync(mode){
-    var labels = { cloud:"Synced", local:"This device", error:"Not synced" };
-    var titles = { cloud:"Saved to your account and available on your other devices", local:"Saved in this browser only", error:"Could not reach your account. Changes are saved in this browser." };
+  /* ---------- accounts and cloud sync ---------- */
+  var SS = window.StudySync || null;
+  var sync = { user: null, unsub: null, writing: false, queued: false, serverSeen: false, wantPush: false, status: "local", detail: "", authKnown: false };
+  var acct = { mode: "signin", busy: false, google: null };
+
+  function accountsReady(){ return !!(SS && SS.configured); }
+
+  var SYNC_LABELS = { local: "This device", checking: "…", signedout: "Sign in", syncing: "Syncing…", synced: "Synced", offline: "Offline", error: "Not synced" };
+  var SYNC_TITLES = {
+    local: "Saved on this device only. Tap to set up accounts.",
+    checking: "Checking your account",
+    signedout: "Sign in to sync your subjects between devices",
+    syncing: "Syncing with your account",
+    synced: "Saved to your account and available on your other devices",
+    offline: "Offline. Changes are kept here and sync when you are back online.",
+    error: "Could not sync with your account. Tap for details."
+  };
+  function setSync(mode, detail){
+    sync.status = mode;
+    sync.detail = detail || "";
     syncEl.dataset.mode = mode;
-    syncEl.textContent = labels[mode];
-    syncEl.title = titles[mode];
+    syncEl.textContent = SYNC_LABELS[mode] || "";
+    syncEl.title = SYNC_TITLES[mode] || "";
+    if (openNode === accountDlg) renderAccount();
   }
 
-  async function pushRemote(){
-    if (!dbDoc) return;
-    if (writing){ queued = true; return; }
-    writing = true;
-    try {
-      do {
-        queued = false;
-        await dbDoc.set({ v: 1, seeded: !!state.seeded, subjects: state.subjects, updated: Date.now() });
-      } while (queued);
-      setSync("cloud");
-    } catch(e){
-      setSync("error");
-    } finally {
-      writing = false;
+  function stopSync(){
+    if (sync.unsub){ try { sync.unsub(); } catch(e){} sync.unsub = null; }
+    sync.user = null;
+    sync.queued = false;
+    sync.serverSeen = false;
+    sync.wantPush = false;
+  }
+
+  function startSync(user){
+    stopSync();
+    sync.user = user;
+    // A different person on a shared device must not receive the previous person's subjects.
+    if (state.owner && state.owner !== user.uid){
+      state = { subjects: [], seeded: true, deleted: {}, orderAt: 0 };
+      resetHistory();
+      render();
     }
+    state.owner = user.uid;
+    saveLocal();
+    setSync("syncing");
+    sync.unsub = SS.subscribe(user.uid, onRemote, onSyncError);
   }
 
-  async function connect(){
-    try {
-      if (!window.claude || !window.claude.use) { seedIfNeeded(); return; }
-      var db = await window.claude.use("db");
-      var user = await window.claude.use("user");
-      if (!db || !user) { seedIfNeeded(); return; }
-      var id = await user.id();
-      if (!id) { seedIfNeeded(); return; }
-      dbDoc = db.doc("data/users/" + id + "/tracker");
-      dbDoc.onSnapshot(function(snap){
-        if (!firstSnap){
-          firstSnap = true;
-          if (snap.exists && !dirty){
-            var remote = sanitize(snap.data());
-            if (remote){
-              if (snapshotKey(remote) !== snapshotKey(state)){ state = remote; saveLocal(); resetHistory(); }
-              booted = true; setSync("cloud"); render(); return;
-            }
-          }
-          if (!booted) { seedIfNeeded(); } else { pushRemote(); }
-          return;
-        }
-        if (!snap.exists || writing || queued) return;
-        var r = sanitize(snap.data());
-        if (!r || snapshotKey(r) === snapshotKey(state)) return;
-        state = r; saveLocal(); resetHistory(); render();
+  function restartSync(){
+    if (sync.user) startSync(sync.user);
+  }
+
+  function onSyncError(e){
+    setSync("error", (e && e.code) || "unknown");
+    if (!booted) seedIfNeeded();
+  }
+
+  function onRemote(info){
+    if (!sync.user) return;
+    if (!info.fromCache) sync.serverSeen = true;
+    // An empty local cache says nothing about the cloud yet; wait for the server's answer.
+    if (!info.exists && !sync.serverSeen){
+      setSync(navigator.onLine === false ? "offline" : "syncing");
+      return;
+    }
+    var remote = info.exists ? sanitize(info.data, true) : null;
+    var hadDoc = !!remote;
+    if (!remote) remote = emptyDoc();
+    var local = cloudView(state);
+    var merged = mergeStates(local, remote);
+    // A brand-new account on a device that only holds the demo subjects: keep the demo for now.
+    var demoOnly = !hadDoc && merged.subjects.length === 0 && Object.keys(merged.deleted).length === 0;
+    if (!demoOnly){
+      var before = stateKey(state);
+      var demos = hadDoc ? [] : state.subjects.filter(function(x){ return x.ex; });
+      state.subjects = merged.subjects.concat(demos);
+      state.deleted = merged.deleted;
+      state.orderAt = merged.orderAt;
+      state.seeded = true;
+      if (stateKey(state) !== before){
+        saveLocal();
+        resetHistory();
         if (activeId && !findSubject(activeId)) closeOverlay();
-        setSync("cloud");
-      }, function(){
-        setSync("error");
-        seedIfNeeded();
-      });
-    } catch(e){
-      setSync("error");
-      seedIfNeeded();
+      }
     }
+    booted = true;
+    if (info.pending) setSync("syncing");
+    else if (info.fromCache) setSync(navigator.onLine === false ? "offline" : "syncing");
+    else setSync("synced");
+    render();
+    var needPush = stateKey(merged) !== stateKey(remote);
+    if (sync.serverSeen && (needPush || sync.wantPush)){
+      sync.wantPush = false;
+      pushCloud();
+    }
+  }
+
+  function pushCloud(){
+    if (!sync.user || !SS) return;
+    // Never write before the server has told us what is already there.
+    if (!sync.serverSeen){ sync.wantPush = true; return; }
+    if (sync.writing){ sync.queued = true; return; }
+    sync.writing = true;
+    var uid = sync.user.uid;
+    (function loop(){
+      sync.queued = false;
+      // Signed out (or switched account) meanwhile: write nothing more.
+      if (!sync.user || sync.user.uid !== uid){ sync.writing = false; return; }
+      var d = cloudView(state);
+      d.v = 1;
+      d.updated = Date.now();
+      SS.write(uid, d).then(function(){
+        if (sync.queued) return loop();
+        sync.writing = false;
+      }, function(e){
+        sync.writing = false;
+        onSyncError(e);
+      });
+    })();
+  }
+
+  window.addEventListener("online", function(){
+    if (sync.user && sync.status === "error") restartSync();
+  });
+
+  function startAccounts(){
+    if (!accountsReady()){
+      setSync("local");
+      seedIfNeeded();
+      return;
+    }
+    setSync("checking");
+    SS.onAuthChange(function(user){
+      sync.authKnown = true;
+      if (user){
+        startSync(user);
+      } else {
+        stopSync();
+        setSync("signedout");
+        seedIfNeeded();
+      }
+      if (openNode === accountDlg) renderAccount();
+    });
+    setTimeout(function(){ if (!sync.authKnown) setSync("signedout"); }, 4000);
+    if (window.__studyGoogleNotify) window.__studyGoogleNotify();
   }
 
   /* ---------- data helpers ---------- */
@@ -602,6 +834,7 @@ kbd{font:inherit;font-size:12px;padding:2px 8px;border:1px solid var(--outline);
     lastSnap = JSON.stringify(state.subjects);
   }
   function commit(){
+    stamp(JSON.parse(lastSnap));
     var now = JSON.stringify(state.subjects);
     if (now !== lastSnap){
       undoStack.push(lastSnap);
@@ -612,15 +845,17 @@ kbd{font:inherit;font-size:12px;padding:2px 8px;border:1px solid var(--outline);
     dirty = true;
     saveLocal();
     render();
-    pushRemote();
+    pushCloud();
   }
   function restore(snap){
+    var prevSubjects = state.subjects;
     state.subjects = JSON.parse(snap);
-    lastSnap = snap;
+    stamp(prevSubjects);
+    lastSnap = JSON.stringify(state.subjects);
     dirty = true;
     saveLocal();
     render();
-    pushRemote();
+    pushCloud();
     if (activeId && !findSubject(activeId)) closeOverlay();
   }
   function undo(){
@@ -877,9 +1112,11 @@ kbd{font:inherit;font-size:12px;padding:2px 8px;border:1px solid var(--outline);
   function closeOverlay(){
     if (!openNode) return;
     if (openNode === sheet) saveSheetFields();
+    if (openNode === accountDlg && acct.google) cancelGoogle();
     var n = openNode; openNode = null;
     n.classList.remove("open"); scrim.classList.remove("open");
     disarmDelete();
+    disarmClear();
     setTimeout(function(){
       if (openNode !== n) n.hidden = true;
       if (!openNode) scrim.hidden = true;
@@ -897,7 +1134,7 @@ kbd{font:inherit;font-size:12px;padding:2px 8px;border:1px solid var(--outline);
     if (!openNode) return;
     if (e.key === "Escape"){ e.preventDefault(); closeOverlay(); return; }
     if (e.key === "Tab"){
-      var f = openNode.querySelectorAll("button:not([disabled]),input,textarea");
+      var f = Array.prototype.filter.call(openNode.querySelectorAll("button:not([disabled]),input:not([disabled]),textarea"), function(x){ return !x.closest("[hidden]"); });
       if (!f.length) return;
       var first = f[0], last = f[f.length - 1];
       if (e.shiftKey && (document.activeElement === first || document.activeElement === openNode)){ e.preventDefault(); last.focus(); }
@@ -1249,13 +1486,258 @@ kbd{font:inherit;font-size:12px;padding:2px 8px;border:1px solid var(--outline);
     else if (k === "t"){ themeBtn.click(); }
   });
 
+  /* ---------- account screen ---------- */
+  var acctForm = $("acctForm"), acctEmail = $("acctEmail"), acctPw = $("acctPw"), acctMsg = $("acctMsg");
+  var clearTimer = null;
+
+  function googleAvailable(){
+    if (window.studyDesktop && typeof window.studyDesktop.googleSignIn === "function") return true;
+    return !!(window.AndroidBridge && typeof window.AndroidBridge.googleSignIn !== "undefined");
+  }
+  function acctShow(which){
+    ["acctSetup", "acctForm", "acctWait", "acctIn"].forEach(function(id){ $(id).hidden = id !== which; });
+  }
+  function setAcctMsg(text, kind){
+    acctMsg.textContent = text || "";
+    acctMsg.className = "acct-msg" + (kind === "err" ? " err" : "");
+    acctMsg.hidden = !text;
+  }
+  function friendlyAuthError(e){
+    var c = (e && e.code) || "";
+    if (c === "auth/invalid-email") return "That email address does not look right.";
+    if (c === "auth/user-not-found" || c === "auth/wrong-password" || c === "auth/invalid-credential" || c === "auth/invalid-login-credentials") return "Wrong email or password.";
+    if (c === "auth/email-already-in-use") return "An account with this email already exists. Try signing in.";
+    if (c === "auth/weak-password") return "Choose a password with at least 6 characters.";
+    if (c === "auth/too-many-requests") return "Too many attempts. Wait a few minutes and try again.";
+    if (c === "auth/network-request-failed") return "No internet connection.";
+    if (c === "auth/operation-not-allowed") return "This sign-in method is not turned on in Firebase yet.";
+    if (c === "auth/user-disabled") return "This account has been disabled.";
+    if (c === "auth/account-exists-with-different-credential") return "This email is already used with another sign-in method. Sign in with that one.";
+    if (c === "auth/invalid-api-key" || c === "auth/api-key-not-valid.-please-pass-a-valid-api-key.") return "The Firebase settings in firebase-config.js are not right.";
+    return "Something went wrong" + (c ? " (" + c + ")" : "") + ". Try again.";
+  }
+  function friendlyGoogleError(e){
+    var m = String((e && e.message) || "");
+    if (/timeout/.test(m)) return "Google sign-in took too long. Try again.";
+    if (/listen-failed/.test(m)) return "Could not start the sign-in listener on this computer.";
+    if (/open-failed/.test(m)) return "Could not open your browser.";
+    if (/bad-helper-url/.test(m)) return "The sign-in page address in firebase-config.js is wrong.";
+    if (e && /^auth\//.test(e.code || "")) return friendlyAuthError(e);
+    return "Google sign-in did not finish. Try again.";
+  }
+  function syncErrorHelp(code){
+    if (code === "permission-denied") return "The cloud rules do not let this account save. In Firebase, open Firestore Database, then Rules, and publish the rules from firestore.rules.";
+    if (code === "not-found" || code === "failed-precondition") return "Cloud storage is not ready. In Firebase, open Build, then Firestore Database, and create the database.";
+    if (code === "unauthenticated") return "Your sign-in expired. Sign out and sign in again.";
+    if (code === "unavailable") return "Cannot reach the cloud right now. It will retry when you are online.";
+    return "Sync problem" + (code ? " (" + code + ")" : "") + ".";
+  }
+  function statusText(){
+    if (sync.status === "synced") return "Synced";
+    if (sync.status === "syncing") return "Syncing…";
+    if (sync.status === "offline") return "Offline. Changes sync when you are back online.";
+    if (sync.status === "error") return "Not synced";
+    return "";
+  }
+
+  function renderAccount(){
+    if (!accountsReady()){
+      $("acctTitle").textContent = "Account";
+      $("acctSetupMsg").textContent = (SS && SS.initError)
+        ? "Accounts could not start (" + SS.initError + "). Check the settings in firebase-config.js."
+        : "Accounts are not set up yet, so your subjects are saved on this device only.";
+      acctShow("acctSetup");
+      return;
+    }
+    if (acct.google){
+      $("acctTitle").textContent = "Google sign-in";
+      acctShow("acctWait");
+      return;
+    }
+    if (sync.user){
+      var u = sync.user;
+      $("acctTitle").textContent = "Account";
+      $("acctAvatar").textContent = (u.name || u.email || "?").trim().charAt(0);
+      $("acctWho").textContent = u.email || u.name || "Signed in";
+      $("acctStatus").textContent = statusText();
+      var bad = sync.status === "error";
+      $("acctSyncErr").textContent = bad ? syncErrorHelp(sync.detail) : "";
+      $("acctSyncErr").hidden = !bad;
+      $("acctRetry").hidden = !bad;
+      acctShow("acctIn");
+      return;
+    }
+    var m = acct.mode;
+    $("acctTitle").textContent = m === "signup" ? "Create account" : m === "reset" ? "Reset password" : "Sign in";
+    $("acctIntro").textContent = m === "reset"
+      ? "Enter your email and we will send you a link to choose a new password."
+      : "Keep your subjects in sync on all your devices. The app works without an account too.";
+    $("acctPwField").hidden = m === "reset";
+    acctPw.autocomplete = m === "signup" ? "new-password" : "current-password";
+    $("acctSubmit").textContent = acct.busy ? "Please wait…" : m === "signup" ? "Create account" : m === "reset" ? "Send reset link" : "Sign in";
+    var a = $("acctLinkA"), b = $("acctLinkB");
+    if (m === "signin"){ a.textContent = "Create account"; b.textContent = "Forgot password?"; b.hidden = false; }
+    else if (m === "signup"){ a.textContent = "I already have an account"; b.hidden = true; }
+    else { a.textContent = "Back to sign in"; b.hidden = true; }
+    $("acctGoogleWrap").hidden = !(googleAvailable() && m !== "reset");
+    [acctEmail, acctPw, $("acctSubmit"), a, b, $("acctGoogle"), $("acctNotNow")].forEach(function(x){ x.disabled = acct.busy; });
+    acctShow("acctForm");
+  }
+
+  function openAccount(){
+    acct.mode = "signin";
+    acct.busy = false;
+    setAcctMsg("");
+    renderAccount();
+    var first = !accountsReady() ? $("acctSetupClose") : acct.google ? $("acctWaitCancel") : sync.user ? $("acctClose") : acctEmail;
+    openOverlay(accountDlg, first);
+  }
+  syncEl.addEventListener("click", openAccount);
+  $("acctSetupClose").addEventListener("click", closeOverlay);
+  $("acctNotNow").addEventListener("click", closeOverlay);
+  $("acctClose").addEventListener("click", closeOverlay);
+  $("acctWaitCancel").addEventListener("click", function(){ cancelGoogle(); });
+  $("acctRetry").addEventListener("click", function(){ restartSync(); setSync("syncing"); });
+
+  function switchMode(next){
+    acct.mode = next;
+    setAcctMsg("");
+    renderAccount();
+    acctEmail.focus();
+  }
+  $("acctLinkA").addEventListener("click", function(){ switchMode(acct.mode === "signin" ? "signup" : "signin"); });
+  $("acctLinkB").addEventListener("click", function(){ switchMode("reset"); });
+
+  acctForm.addEventListener("submit", function(e){
+    e.preventDefault();
+    if (acct.busy || !accountsReady()) return;
+    var mode = acct.mode;
+    var email = acctEmail.value.trim();
+    var pw = acctPw.value;
+    if (!/^\S+@\S+\.\S+$/.test(email)){ setAcctMsg("Enter a valid email address.", "err"); acctEmail.focus(); return; }
+    if (mode !== "reset"){
+      if (!pw){ setAcctMsg("Enter your password.", "err"); acctPw.focus(); return; }
+      if (mode === "signup" && pw.length < 6){ setAcctMsg("Choose a password with at least 6 characters.", "err"); acctPw.focus(); return; }
+    }
+    acct.busy = true;
+    setAcctMsg("");
+    renderAccount();
+    var p = mode === "signup" ? SS.signUp(email, pw) : mode === "reset" ? SS.resetPassword(email) : SS.signIn(email, pw);
+    p.then(function(){
+      acct.busy = false;
+      if (mode === "reset"){
+        renderAccount();
+        setAcctMsg("If an account exists for that email, a reset link is on its way. Check your inbox.", "ok");
+        return;
+      }
+      acctPw.value = "";
+      if (openNode === accountDlg) closeOverlay();
+      toast(mode === "signup" ? "Account created. You are signed in." : "Signed in");
+    }, function(err){
+      acct.busy = false;
+      renderAccount();
+      setAcctMsg(friendlyAuthError(err), "err");
+    });
+  });
+
+  /* Google: the system browser does the sign-in, the app only receives the result. */
+  function googleToken(job){
+    var url = window.STUDY_AUTH_HELPER_URL;
+    if (window.studyDesktop && typeof window.studyDesktop.googleSignIn === "function") return window.studyDesktop.googleSignIn(url);
+    if (window.AndroidBridge && typeof window.AndroidBridge.googleSignIn !== "undefined"){
+      return new Promise(function(resolve, reject){
+        job.resolve = resolve;
+        job.reject = reject;
+        job.timer = setTimeout(function(){ reject(new Error("timeout")); }, 10 * 60 * 1000);
+        window.AndroidBridge.googleSignIn(url);
+      });
+    }
+    return Promise.reject(new Error("unavailable"));
+  }
+  function endGoogle(job){
+    if (job.timer) clearTimeout(job.timer);
+    if (acct.google === job) acct.google = null;
+  }
+  function startGoogle(){
+    if (acct.google || !accountsReady()) return;
+    var job = { cancelled: false, resolve: null, reject: null, timer: null };
+    acct.google = job;
+    setAcctMsg("");
+    renderAccount();
+    googleToken(job).then(function(token){
+      if (job.cancelled) throw new Error("cancelled");
+      return SS.signInWithGoogleIdToken(token);
+    }).then(function(){
+      endGoogle(job);
+      if (openNode === accountDlg) closeOverlay();
+      toast("Signed in with Google");
+    }, function(err){
+      var cancelled = job.cancelled || /cancelled/.test(String((err && err.message) || ""));
+      endGoogle(job);
+      renderAccount();
+      if (!cancelled) setAcctMsg(friendlyGoogleError(err), "err");
+    });
+  }
+  function cancelGoogle(){
+    var job = acct.google;
+    if (!job) return;
+    job.cancelled = true;
+    if (window.studyDesktop && typeof window.studyDesktop.cancelGoogleSignIn === "function") window.studyDesktop.cancelGoogleSignIn();
+    if (job.reject) job.reject(new Error("cancelled"));
+    endGoogle(job);
+    renderAccount();
+  }
+  $("acctGoogle").addEventListener("click", startGoogle);
+  // Android calls this when the browser hands the sign-in token back to the app.
+  window.__studyGoogleNotify = function(){
+    var t = "";
+    try { t = (window.AndroidBridge && typeof window.AndroidBridge.takeGoogleToken !== "undefined" && window.AndroidBridge.takeGoogleToken()) || ""; } catch(e){}
+    if (!t) return;
+    if (acct.google && acct.google.resolve){ acct.google.resolve(t); return; }
+    if (accountsReady()){
+      SS.signInWithGoogleIdToken(t).then(function(){ toast("Signed in with Google"); }, function(err){ toast(friendlyGoogleError(err)); });
+    }
+  };
+
+  /* Signing out */
+  function disarmClear(){
+    clearTimeout(clearTimer);
+    var b = $("acctOutClear");
+    b.classList.remove("armed");
+    b.textContent = "Sign out and clear this device";
+  }
+  $("acctOut").addEventListener("click", function(){
+    if (!SS) return;
+    SS.signOut().then(function(){
+      if (openNode === accountDlg) closeOverlay();
+      toast("Signed out. Your subjects stay on this device.");
+    }, function(){ toast("Could not sign out. Try again."); });
+  });
+  $("acctOutClear").addEventListener("click", function(){
+    var b = $("acctOutClear");
+    if (!b.classList.contains("armed")){
+      b.classList.add("armed");
+      b.textContent = "Tap again to clear this device";
+      clearTimer = setTimeout(disarmClear, 3500);
+      return;
+    }
+    disarmClear();
+    // Stop syncing first so the emptied list can never be written to the cloud.
+    stopSync();
+    state = { subjects: [], seeded: true, deleted: {}, orderAt: 0 };
+    saveLocal();
+    resetHistory();
+    render();
+    var done = function(){ if (openNode === accountDlg) closeOverlay(); toast("Signed out and cleared this device"); };
+    if (SS) SS.signOut().then(done, done); else done();
+  });
+
   /* ---------- start ---------- */
   applyTheme();
   renderRemind();
   resetHistory();
   render();
-  setSync("local");
-  connect();
+  startAccounts();
   setInterval(checkReminders, 3600000);
 })();
 </script>

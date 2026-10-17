@@ -4,4 +4,5 @@
     <string name="channel_name">Exam reminders</string>
     <string name="backup_saved">Backup saved</string>
     <string name="backup_failed">Could not save the backup</string>
+    <string name="no_browser">No web browser found to sign in with Google</string>
 </resources>

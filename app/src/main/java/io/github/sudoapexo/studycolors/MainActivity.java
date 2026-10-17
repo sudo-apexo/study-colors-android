@@ -40,6 +40,9 @@ import androidx.webkit.WebViewFeature;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.SecureRandom;
+import java.util.regex.Pattern;
 
 /**
  * Shows the Study Colors page (assets/index.html) full screen and connects it to Android:
@@ -57,6 +60,15 @@ public class MainActivity extends ComponentActivity {
 
     private ValueCallback<Uri[]> fileCallback;
     private String pendingSaveText;
+
+    // Google sign-in hand-off: the browser returns a token through a custom address.
+    private static final String AUTH_SCHEME = "io.github.sudoapexo.studycolors";
+    private static final long AUTH_WINDOW_MS = 10 * 60 * 1000L;
+    private static final Pattern STATE_FORMAT = Pattern.compile("^[a-f0-9]{16,64}$");
+    private static final Pattern TOKEN_FORMAT =
+            Pattern.compile("^[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$");
+    private String pendingGoogleToken;
+    private long pendingGoogleTokenAt;
 
     private ActivityResultLauncher<Intent> chooserLauncher;
     private ActivityResultLauncher<String> saveLauncher;
@@ -125,6 +137,47 @@ public class MainActivity extends ComponentActivity {
         if (savedInstanceState == null || webView.restoreState(savedInstanceState) == null) {
             webView.loadUrl(START_URL);
         }
+        handleAuthIntent(getIntent());
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        if (handleAuthIntent(intent)) {
+            webView.evaluateJavascript(
+                    "window.__studyGoogleNotify&&window.__studyGoogleNotify()", null);
+        }
+    }
+
+    /** Accepts the sign-in token only if it carries the secret created when sign-in began. */
+    private boolean handleAuthIntent(Intent intent) {
+        if (intent == null || intent.getData() == null) {
+            return false;
+        }
+        Uri uri = intent.getData();
+        // Use each link once, even if the activity is re-created with the same intent.
+        intent.setData(null);
+        if (!AUTH_SCHEME.equals(uri.getScheme()) || !"auth".equals(uri.getHost())) {
+            return false;
+        }
+        String state = uri.getQueryParameter("state");
+        String token = uri.getQueryParameter("token");
+        String expected = prefs.getString("google_state", "");
+        long started = prefs.getLong("google_state_at", 0L);
+        prefs.edit().remove("google_state").remove("google_state_at").apply();
+        if (state == null || token == null || expected.isEmpty()
+                || !STATE_FORMAT.matcher(state).matches()
+                || token.length() > 8192 || !TOKEN_FORMAT.matcher(token).matches()
+                || System.currentTimeMillis() - started > AUTH_WINDOW_MS
+                || !MessageDigest.isEqual(
+                        state.getBytes(StandardCharsets.UTF_8),
+                        expected.getBytes(StandardCharsets.UTF_8))) {
+            return false;
+        }
+        pendingGoogleToken = token;
+        pendingGoogleTokenAt = System.currentTimeMillis();
+        return true;
     }
 
     private void setUpWebView() {
@@ -319,6 +372,51 @@ public class MainActivity extends ComponentActivity {
                     .setAutoCancel(true)
                     .build();
             manager.notify((int) (System.currentTimeMillis() & 0x7fffffff), notification);
+        }
+
+        @JavascriptInterface
+        public void googleSignIn(String helperUrl) {
+            final Uri base;
+            try {
+                base = Uri.parse(helperUrl);
+            } catch (RuntimeException e) {
+                return;
+            }
+            if (base == null || !"https".equals(base.getScheme()) || base.getHost() == null) {
+                return;
+            }
+            byte[] bytes = new byte[24];
+            new SecureRandom().nextBytes(bytes);
+            StringBuilder hex = new StringBuilder();
+            for (byte b : bytes) {
+                hex.append(String.format("%02x", b));
+            }
+            final String state = hex.toString();
+            prefs.edit().putString("google_state", state)
+                    .putLong("google_state_at", System.currentTimeMillis()).apply();
+            final Uri target = base.buildUpon()
+                    .appendQueryParameter("platform", "android")
+                    .appendQueryParameter("state", state)
+                    .build();
+            runOnUiThread(() -> {
+                try {
+                    startActivity(new Intent(Intent.ACTION_VIEW, target));
+                } catch (RuntimeException e) {
+                    Toast.makeText(MainActivity.this, R.string.no_browser, Toast.LENGTH_LONG).show();
+                }
+            });
+        }
+
+        /** Returns the sign-in token once, then forgets it. */
+        @JavascriptInterface
+        public String takeGoogleToken() {
+            String token = pendingGoogleToken;
+            long at = pendingGoogleTokenAt;
+            pendingGoogleToken = null;
+            if (token == null || System.currentTimeMillis() - at > AUTH_WINDOW_MS) {
+                return "";
+            }
+            return token;
         }
 
         @JavascriptInterface
