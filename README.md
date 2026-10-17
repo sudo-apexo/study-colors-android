@@ -80,3 +80,7 @@ App code: MIT (`LICENSE`). Monocraft font: SIL Open Font License 1.1 (`OFL.txt`)
 ## Accounts and sync (optional)
 
 Sign in with email or Google to keep subjects in sync with the desktop app. Setup is a one-time Firebase project; see `SETUP-ACCOUNTS.md` in the desktop repo (https://github.com/sudo-apexo/study-colors). Put the same values in `app/src/main/assets/firebase-config.js` (or run `./sync-from-desktop.sh` after updating the desktop repo). Without it the app saves on the phone only.
+
+## Settings
+
+Tap the gear in the top bar. Theme, accent color, font, text size, corner style, reminders, backup and account all live there. Run `./sync-from-desktop.sh` to bring in the latest page from the desktop repo.

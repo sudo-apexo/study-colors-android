@@ -74,7 +74,7 @@
     }
     new MutationObserver(sendBars).observe(document.documentElement, {
       attributes: true,
-      attributeFilter: ["data-theme"]
+      attributeFilter: ["data-theme", "data-accent"]
     });
     if (window.matchMedia) {
       var dark = window.matchMedia("(prefers-color-scheme: dark)");
