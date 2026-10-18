@@ -17,4 +17,4 @@ window.STUDY_AUTH_HELPER_URL = "https://sudo-apexo.github.io/study-colors/auth.h
 // Android only: the "Web client ID" of this Firebase project. With it, "Continue with Google" opens the
 // phone's own account picker instead of the browser. Find it in Firebase: Authentication > Sign-in method >
 // Google > Web SDK configuration. It looks like 123456789-abc123.apps.googleusercontent.com
-window.STUDY_GOOGLE_WEB_CLIENT_ID = "";
+window.STUDY_GOOGLE_WEB_CLIENT_ID = "992844163133-2sdqmocu2hekhivd6ig063kppi2t1qj1.apps.googleusercontent.com";
