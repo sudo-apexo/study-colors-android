@@ -60,4 +60,8 @@ jobs:
           gh release view latest >/dev/null 2>&1 || gh release create latest \
             --title "Study Colors (latest build)" \
             --notes "The newest build of the app. Download StudyColors.apk and open it on your phone."
+          # The app reads this number to know whether an update exists.
+          gh release edit latest --notes "The newest build of the app. Open Settings > About in the app and tap Update now, or download StudyColors.apk.
+
+          build: ${{ github.run_number }}"
           gh release upload latest StudyColors.apk --clobber

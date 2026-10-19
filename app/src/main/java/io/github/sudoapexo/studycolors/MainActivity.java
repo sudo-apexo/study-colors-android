@@ -71,6 +71,7 @@ public class MainActivity extends ComponentActivity {
     private FrameLayout root;
     private WebView webView;
     private SharedPreferences prefs;
+    private Updater updater;
 
     private ValueCallback<Uri[]> fileCallback;
     private String pendingSaveText;
@@ -211,6 +212,7 @@ public class MainActivity extends ComponentActivity {
         webView.setBackgroundColor(Color.TRANSPARENT);
         webView.setHapticFeedbackEnabled(false);
         webView.setOnLongClickListener(v -> true);
+        updater = new Updater(this, webView);
         webView.addJavascriptInterface(new Bridge(), "AndroidBridge");
 
         final WebViewAssetLoader loader = new WebViewAssetLoader.Builder()
@@ -278,6 +280,14 @@ public class MainActivity extends ComponentActivity {
                 });
             }
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (updater != null) {
+            updater.resumed();
+        }
     }
 
     @Override
@@ -499,6 +509,26 @@ public class MainActivity extends ComponentActivity {
                 return "";
             }
             return token;
+        }
+
+        @JavascriptInterface
+        public int appBuild() {
+            return updater.installedBuild();
+        }
+
+        @JavascriptInterface
+        public String appVersionName() {
+            return updater.installedName();
+        }
+
+        @JavascriptInterface
+        public void checkUpdate() {
+            updater.check();
+        }
+
+        @JavascriptInterface
+        public void installUpdate() {
+            updater.install();
         }
 
         @JavascriptInterface

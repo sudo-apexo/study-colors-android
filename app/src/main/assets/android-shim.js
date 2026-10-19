@@ -59,6 +59,47 @@
     }
   }
 
+
+  /* ---- One-tap updates (Settings > About) ---- */
+  var upBtn, upMsg, upState = "idle";
+  function setUp(state, text, label, disabled) {
+    upState = state;
+    if (upMsg) upMsg.textContent = text;
+    if (upBtn) { upBtn.textContent = label; upBtn.disabled = !!disabled; }
+  }
+  window.__studyUpdate = function (u) {
+    var v = "Version " + (B.appVersionName() || "") + " (build " + B.appBuild() + "). ";
+    if (u.state === "checking") setUp("checking", v + "Checking for updates\u2026", "Checking\u2026", true);
+    else if (u.state === "current") setUp("current", v + "You have the newest version.", "Check for updates", false);
+    else if (u.state === "available") setUp("available", v + "A new version is ready.", "Update now", false);
+    else if (u.state === "downloading") setUp("downloading", v + "Downloading\u2026 " + (u.percent || 0) + "%", "Downloading\u2026", true);
+    else if (u.state === "ready") setUp("available", v + "Downloaded. Tap Update now, then Install.", "Update now", false);
+    else if (u.state === "permission") setUp("available", v + "Allow installs from Study Colors on the screen that opened, then come back and tap Update now.", "Update now", false);
+    else if (u.state === "installing") setUp("available", v + "Tap Install on the Android screen.", "Update now", false);
+    else setUp("idle", v + "Could not reach GitHub. Check your connection.", "Check for updates", false);
+  };
+  function addUpdateRow() {
+    var about = document.getElementById("aboutLine");
+    if (!about || document.getElementById("updBtn")) return;
+    upMsg = document.createElement("p");
+    upMsg.className = "acct-msg";
+    about.parentNode.insertBefore(upMsg, about);
+    var wrap = document.createElement("div");
+    wrap.className = "set-btns";
+    upBtn = document.createElement("button");
+    upBtn.type = "button";
+    upBtn.id = "updBtn";
+    upBtn.className = "btn filled state";
+    wrap.appendChild(upBtn);
+    about.parentNode.insertBefore(wrap, upMsg);
+    upBtn.addEventListener("click", function () {
+      if (upState === "available") B.installUpdate(); else B.checkUpdate();
+    });
+    window.__studyUpdate({ state: "idle" });
+    upMsg.textContent = "Version " + (B.appVersionName() || "") + " (build " + B.appBuild() + ").";
+    B.checkUpdate();
+  }
+
   /* ---- Status bar and navigation bar take the page color, in light and dark ---- */
   function sendBars() {
     if (!document.body) return;
@@ -81,6 +122,7 @@
       if (dark.addEventListener) dark.addEventListener("change", sendBars);
     }
     sendBars();
+    addUpdateRow();
   }
 
   if (document.readyState === "loading") {
