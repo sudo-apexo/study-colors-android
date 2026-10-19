@@ -403,6 +403,86 @@ kbd{font:inherit;font-size:calc(12px*var(--ts));padding:2px 8px;border:1px solid
   .dialog:not(.wide) h2{font-size:calc(20px*var(--ts));line-height:calc(28px*var(--ts));letter-spacing:0;text-transform:none;color:var(--on-surface)}
   .dialog:not(.wide) .actions .btn{height:44px}
 }
+
+/* ===== Glass skin: frosted, layered Material 3 surfaces ===== */
+:root{
+  --glass:rgba(255,255,255,.58);--glass-hi:rgba(255,255,255,.74);--glass-edge:rgba(255,255,255,.7);
+  --glass-shadow:0 8px 32px rgba(31,45,25,.10);--blur:blur(22px) saturate(170%);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){--glass:rgba(34,40,32,.52);--glass-hi:rgba(48,56,45,.66);--glass-edge:rgba(255,255,255,.13);--glass-shadow:0 8px 32px rgba(0,0,0,.35)}
+}
+:root[data-theme="dark"]{--glass:rgba(34,40,32,.52);--glass-hi:rgba(48,56,45,.66);--glass-edge:rgba(255,255,255,.13);--glass-shadow:0 8px 32px rgba(0,0,0,.35)}
+html,body{background:var(--surface)}
+body{background:transparent;position:relative;min-height:100vh}
+html{background-color:var(--surface)}
+body::before{
+  content:"";position:fixed;inset:-10%;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(42% 38% at 12% 8%,color-mix(in srgb,var(--primary) 34%,transparent),transparent 70%),
+    radial-gradient(40% 40% at 92% 22%,color-mix(in srgb,#7C5CFF 24%,transparent),transparent 70%),
+    radial-gradient(46% 42% at 70% 96%,color-mix(in srgb,#00ACC1 26%,transparent),transparent 70%),
+    radial-gradient(40% 36% at 6% 80%,color-mix(in srgb,#FFB300 20%,transparent),transparent 70%);
+}
+.appbar,.card,.banner,.search,.sync,.chip,.fab,.sheet,.dialog,.fontopt,.seg,.set-btns .btn,.toast,.kbd,kbd{
+  -webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);
+}
+.appbar{background:var(--glass);border-bottom:1px solid var(--glass-edge);box-shadow:0 1px 0 rgba(255,255,255,.04),var(--glass-shadow)}
+.card{background:var(--glass);border:1px solid var(--glass-edge);box-shadow:var(--glass-shadow);border-radius:calc(32px*var(--rs));padding:20px 24px 24px}
+.bar{height:20px;border-radius:calc(10px*var(--rs));background:color-mix(in srgb,var(--on-surface) 10%,transparent);box-shadow:inset 0 1px 2px rgba(0,0,0,.12)}
+.bar span{border-radius:calc(10px*var(--rs));box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
+.chip{background:var(--glass);border:1px solid var(--glass-edge);border-radius:calc(16px*var(--rs))}
+.sync{background:var(--glass);border-color:var(--glass-edge);border-radius:calc(16px*var(--rs))}
+.banner{background:color-mix(in srgb,var(--primary-container) 72%,transparent);border:1px solid var(--glass-edge);border-radius:calc(24px*var(--rs));box-shadow:var(--glass-shadow)}
+.search{background:var(--glass);border:1px solid var(--glass-edge);box-shadow:var(--glass-shadow);border-radius:calc(28px*var(--rs))}
+.btn.tonal{background:var(--glass-hi);border:1px solid var(--glass-edge)}
+.btn.filled{box-shadow:0 6px 16px -4px color-mix(in srgb,var(--primary) 60%,transparent)}
+.fab{background:color-mix(in srgb,var(--primary-container) 80%,transparent);border:1px solid var(--glass-edge);border-radius:calc(28px*var(--rs));box-shadow:0 10px 30px -6px color-mix(in srgb,var(--primary) 55%,transparent)}
+
+/* Tiles: rounder, glossy edge and a soft glow in their own color */
+.grid{gap:14px}
+.tile{
+  border-radius:calc(28px*var(--rs));min-height:148px;border:1px solid rgba(255,255,255,.38);overflow:hidden;position:relative;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 12px 24px -12px color-mix(in srgb,var(--bg) 85%,transparent);
+  transition:transform 180ms var(--ease),box-shadow 180ms var(--ease);
+}
+.tile:not(.empty)::after{
+  content:"";position:absolute;right:-34px;top:-34px;width:112px;height:112px;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,rgba(255,255,255,.30),rgba(255,255,255,0) 70%);
+}
+.tile.empty{background:var(--glass);border:1.5px dashed color-mix(in srgb,var(--outline) 70%,transparent);box-shadow:var(--glass-shadow);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur)}
+@media (hover:hover){.tile:hover{transform:translateY(-3px)}}
+.tile .name{font-weight:600;letter-spacing:-.01em}
+
+.sheet,.dialog{background:var(--glass-hi);border:1px solid var(--glass-edge);box-shadow:0 20px 60px rgba(0,0,0,.28)}
+.sheet{border-radius:calc(36px*var(--rs)) calc(36px*var(--rs)) 0 0;border-bottom:0}
+.dialog{border-radius:calc(36px*var(--rs))}
+.swatch{box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 6px 12px -6px color-mix(in srgb,var(--bg) 90%,transparent)}
+.fontopt{background:var(--glass);border-color:var(--glass-edge);border-radius:calc(20px*var(--rs))}
+.seg{background:var(--glass);border-color:var(--glass-edge)}
+.set-btns .btn{background:var(--glass);border-color:var(--glass-edge)}
+.scrim{-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.switch{background:var(--glass)}
+.switch[aria-checked="true"]{background:var(--primary)}
+@media (max-width:600px){
+  .dialog.wide{background:var(--surface);-webkit-backdrop-filter:none;backdrop-filter:none}
+  .dialog.wide::before{content:"";position:fixed;inset:0;z-index:-1;background:
+    radial-gradient(60% 30% at 10% 0%,color-mix(in srgb,var(--primary) 30%,transparent),transparent 70%),
+    radial-gradient(60% 30% at 100% 40%,color-mix(in srgb,#7C5CFF 20%,transparent),transparent 70%)}
+  .set-top{background:var(--glass);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur)}
+  .dialog.wide .set-sec{background:var(--glass);border:1px solid var(--glass-edge);border-radius:calc(28px*var(--rs));box-shadow:var(--glass-shadow)}
+  .dialog.wide .seg{background:var(--glass-hi)}
+  .dialog.wide .set-sec{--field-bg:transparent}
+  .sync::after{border-color:transparent}
+  .dialog:not(.wide){border-radius:calc(36px*var(--rs)) calc(36px*var(--rs)) 0 0}
+}
+@supports not (backdrop-filter:blur(1px)){
+  :root{--glass:var(--sc);--glass-hi:var(--sc-high)}
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) body::before{filter:saturate(1.5) brightness(1.5)}
+}
+:root[data-theme="dark"] body::before{filter:saturate(1.5) brightness(1.5)}
 </style>
 
 <header class="appbar">
@@ -722,7 +802,7 @@ kbd{font:inherit;font-size:calc(12px*var(--ts));padding:2px 8px;border:1px solid
   var activeId = null;
   var filter = "", query = "";
   var PREFS_KEY = "study-colors-prefs";
-  var prefs = { theme: "system", sort: "added", remind: true, notified: {}, accent: "green", font: "monocraft", fontCustom: "", size: "m", shape: "round", motion: "auto" };
+  var prefs = { theme: "system", sort: "added", remind: true, notified: {}, accent: "green", font: "inter", fontCustom: "", size: "m", shape: "round", motion: "auto" };
   try {
     var savedPrefs = JSON.parse(localStorage.getItem(PREFS_KEY) || "{}");
     if (typeof savedPrefs.theme === "string") prefs.theme = savedPrefs.theme;
@@ -730,7 +810,10 @@ kbd{font:inherit;font-size:calc(12px*var(--ts));padding:2px 8px;border:1px solid
     if (typeof savedPrefs.remind === "boolean") prefs.remind = savedPrefs.remind;
     ["accent", "font", "fontCustom", "size", "shape", "motion"].forEach(function(k){ if (typeof savedPrefs[k] === "string") prefs[k] = savedPrefs[k]; });
     if (savedPrefs.notified && typeof savedPrefs.notified === "object") prefs.notified = savedPrefs.notified;
+    // New look: move people still on the old pixel default to the smooth font, once.
+    if (savedPrefs.skin !== "2" && (!savedPrefs.font || savedPrefs.font === "monocraft")) prefs.font = "inter";
   } catch(e){}
+  prefs.skin = "2";
   function savePrefs(){
     try { localStorage.setItem(PREFS_KEY, JSON.stringify(prefs)); } catch(e){}
   }
@@ -1538,7 +1621,7 @@ kbd{font:inherit;font-size:calc(12px*var(--ts));padding:2px 8px;border:1px solid
       st.setProperty("--font", customStack(prefs.fontCustom));
       root.setAttribute("data-font", "custom");
     } else {
-      if (prefs.font === "custom") prefs.font = "monocraft";
+      if (prefs.font === "custom") prefs.font = "inter";
       var font = findIn(FONTS, prefs.font); prefs.font = font.id;
       if (font.stack) st.setProperty("--font", font.stack); else st.removeProperty("--font");
       root.setAttribute("data-font", font.id);
@@ -1748,7 +1831,7 @@ kbd{font:inherit;font-size:calc(12px*var(--ts));padding:2px 8px;border:1px solid
 
   /* ---------- settings screen ---------- */
   var settingsDlg = $("settings");
-  var APP_VERSION = "1.5.0";
+  var APP_VERSION = "1.7.0";
   function radioBtn(cls, label, checked, onPick, extra){
     var b = el("button", cls + " state");
     b.type = "button";
@@ -1878,7 +1961,7 @@ kbd{font:inherit;font-size:calc(12px*var(--ts));padding:2px 8px;border:1px solid
   $("setBack").addEventListener("click", closeOverlay);
   $("motionSwitch").addEventListener("click", function(){ pick("motion", prefs.motion === "reduced" ? "auto" : "reduced"); });
   $("resetLook").addEventListener("click", function(){
-    prefs.accent = "green"; prefs.font = "monocraft"; prefs.fontCustom = ""; $("fontCustomInput").value = ""; prefs.size = "m"; prefs.shape = "round"; prefs.motion = "auto"; prefs.theme = "system";
+    prefs.accent = "green"; prefs.font = "inter"; prefs.fontCustom = ""; $("fontCustomInput").value = ""; prefs.size = "m"; prefs.shape = "round"; prefs.motion = "auto"; prefs.theme = "system";
     savePrefs(); applyTheme();
     toast("Appearance reset");
   });
