@@ -5,4 +5,7 @@
     <string name="backup_saved">Backup saved</string>
     <string name="backup_failed">Could not save the backup</string>
     <string name="no_browser">No web browser found to sign in with Google</string>
+    <string name="widget_description">Your subjects and progress at a glance</string>
+    <string name="widget_empty">Open the app to add subjects</string>
+    <string name="widget_none">No color</string>
 </resources>

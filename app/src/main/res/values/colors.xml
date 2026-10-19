@@ -2,4 +2,7 @@
 <resources>
     <color name="surface">#F8FAF4</color>
     <color name="ic_launcher_background">#2E6B3A</color>
+    <color name="widget_bg">#F1F5EC</color>
+    <color name="widget_text">#191D17</color>
+    <color name="widget_sub">#5A6155</color>
 </resources>

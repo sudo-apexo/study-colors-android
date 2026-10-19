@@ -100,6 +100,29 @@
     B.checkUpdate();
   }
 
+
+  /* ---- Home-screen widget: send a small summary of the subjects whenever they change ---- */
+  var widgetTimer = null;
+  function pushWidget(raw) {
+    clearTimeout(widgetTimer);
+    widgetTimer = setTimeout(function () {
+      try {
+        var d = JSON.parse(raw);
+        var out = (d.subjects || []).map(function (s) { return [String(s.name || "").slice(0, 40), s.color || ""]; });
+        B.setWidgetData(JSON.stringify(out));
+      } catch (e) {}
+    }, 400);
+  }
+  var origSet = Storage.prototype.setItem;
+  Storage.prototype.setItem = function (k, v) {
+    if (k === "study-colors-v1") pushWidget(v);
+    return origSet.apply(this, arguments);
+  };
+  try {
+    var first = localStorage.getItem("study-colors-v1");
+    if (first) pushWidget(first);
+  } catch (e) {}
+
   /* ---- Status bar and navigation bar take the page color, in light and dark ---- */
   function sendBars() {
     if (!document.body) return;

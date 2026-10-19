@@ -512,6 +512,14 @@ public class MainActivity extends ComponentActivity {
         }
 
         @JavascriptInterface
+        public void setWidgetData(String json) {
+            if (json == null || json.length() > 60000) {
+                return;
+            }
+            ProgressWidget.save(MainActivity.this, json);
+        }
+
+        @JavascriptInterface
         public int appBuild() {
             return updater.installedBuild();
         }
