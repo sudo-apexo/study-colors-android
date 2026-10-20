@@ -483,6 +483,46 @@ body::before{
   :root:not([data-theme="light"]) body::before{filter:saturate(1.5) brightness(1.5)}
 }
 :root[data-theme="dark"] body::before{filter:saturate(1.5) brightness(1.5)}
+
+/* ===== Sidebar on wide screens (PC) ===== */
+@media (min-width:900px){
+  :root{--side:272px}
+  .appbar{
+    position:fixed;left:0;top:0;bottom:0;width:var(--side);z-index:7;
+    border-bottom:0;border-right:1px solid var(--glass-edge);
+  }
+  .appbar .gutter{
+    max-width:none;height:100%;flex-direction:column;align-items:stretch;gap:6px;
+    padding:20px 14px 96px;
+  }
+  .logo{width:44px;height:44px;margin:4px 8px 0}
+  .appbar h1{flex:none;font-size:calc(22px*var(--ts));line-height:calc(28px*var(--ts));font-weight:600;letter-spacing:-.01em;padding:8px 10px 20px}
+  .sync,.iconbtn{
+    width:100%;height:52px;min-height:52px;padding:0 16px;border:0;border-radius:calc(28px*var(--rs));
+    display:flex;align-items:center;justify-content:flex-start;gap:14px;
+    background:transparent;color:var(--on-surface);font-size:calc(14px*var(--ts));text-align:left;
+  }
+  .sync-ic{display:block;width:24px;height:24px;flex:none;color:var(--on-surface-variant)}
+  .sync{order:1;color:var(--on-surface)}
+  .sync[data-mode="synced"],.sync[data-mode="cloud"],.sync[data-mode="error"],.sync[data-mode="signedout"]{background:transparent;border:0;color:var(--on-surface)}
+  .sync:hover,.iconbtn:hover{background:color-mix(in srgb,var(--primary) 12%,transparent)}
+  #syncTxt{position:static;width:auto;height:auto;clip:auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:calc(14px*var(--ts))}
+  .sync::after{display:none!important}
+  .iconbtn svg{width:24px;height:24px;fill:currentColor;flex:none;color:var(--on-surface-variant)}
+  #themeBtn{order:2;display:flex}
+  #settingsBtn{order:3}
+  #themeBtn::after{content:"Theme";font-size:calc(14px*var(--ts));color:var(--on-surface)}
+  #settingsBtn::after{content:"Settings";font-size:calc(14px*var(--ts));color:var(--on-surface)}
+  /* New subject button lives at the bottom of the sidebar */
+  .fab{
+    left:14px;right:auto;bottom:20px;width:calc(var(--side) - 28px);height:56px;justify-content:center;z-index:8;
+    background:var(--primary);color:var(--on-primary);border:0;
+  }
+  main.gutter{margin-left:var(--side);margin-right:0;width:auto;max-width:none;padding:28px max(28px,4vw) 48px}
+  main.gutter > *{max-width:1180px}
+  .toast{left:calc(50% + var(--side)/2)}
+}
+@media (min-width:900px) and (max-width:1100px){:root{--side:240px}}
 </style>
 
 <header class="appbar">
@@ -1831,7 +1871,7 @@ body::before{
 
   /* ---------- settings screen ---------- */
   var settingsDlg = $("settings");
-  var APP_VERSION = "1.7.0";
+  var APP_VERSION = "1.8.0";
   function radioBtn(cls, label, checked, onPick, extra){
     var b = el("button", cls + " state");
     b.type = "button";
