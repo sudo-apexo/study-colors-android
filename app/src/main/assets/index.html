@@ -461,6 +461,8 @@ body::before{
 .fontopt{background:var(--glass);border-color:var(--glass-edge);border-radius:calc(20px*var(--rs))}
 .seg{background:var(--glass);border-color:var(--glass-edge)}
 .set-btns .btn{background:var(--glass);border-color:var(--glass-edge)}
+.set-btns .btn.filled{background:var(--primary);color:var(--on-primary);border-color:transparent;flex:0 0 auto;padding:0 28px}
+.set-btns .btn.filled[disabled]{opacity:.6}
 .scrim{-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
 .switch{background:var(--glass)}
 .switch[aria-checked="true"]{background:var(--primary)}
@@ -501,7 +503,7 @@ body::before{
 @media (min-width:900px){
   :root{--navw:272px}
   :root[data-nav="side"]{--side:var(--navw)}
-  :root[data-nav="side"][data-navhide="1"]{--side:72px}
+  :root[data-nav="side"][data-navhide="1"]{--side:76px}
   :root[data-nav="side"] .appbar{
     transition:transform 220ms var(--ease);
     position:fixed;left:0;top:0;bottom:0;width:var(--navw);z-index:7;
@@ -531,25 +533,23 @@ body::before{
   :root[data-nav="side"] #settingsBtn::after{content:"Settings";font-size:calc(14px*var(--ts));color:var(--on-surface)}
   /* New subject button lives at the bottom of the sidebar */
   :root[data-nav="side"] .fab{
-    left:14px;right:auto;bottom:20px;width:calc(var(--side) - 28px);height:56px;justify-content:center;z-index:8;
+    left:14px;right:auto;bottom:20px;width:calc(var(--side) - 28px);height:48px;justify-content:flex-start;z-index:8;
     background:var(--primary);color:var(--on-primary);border:0;
   }
   :root[data-nav="side"] main.gutter{margin-left:var(--side);margin-right:0;width:auto;max-width:none;padding:28px max(28px,4vw) 48px}
   :root[data-nav="side"] main.gutter > *{max-width:1180px}
   :root[data-nav="side"] .toast{left:calc(50% + var(--side)/2)}
-  :root[data-nav="side"][data-navhide="1"] .appbar{width:72px}
+  :root[data-nav="side"][data-navhide="1"] .appbar{width:76px}
   :root[data-nav="side"] .appbar{overflow:hidden;transition:width 280ms var(--ease)}
   :root[data-nav="side"] .appbar .gutter{transition:opacity 180ms var(--ease) 90ms,visibility 0s linear 0s;min-width:calc(var(--navw) - 0px)}
   :root[data-nav="side"][data-navhide="1"] .appbar .gutter{opacity:0;visibility:hidden;pointer-events:none;transition:opacity 120ms var(--ease),visibility 0s linear 120ms}
-  :root[data-nav="side"][data-navhide="1"] .fab{padding:0 10px}
   :root[data-nav="side"] main.gutter{transition:margin-left 280ms var(--ease)}
-  :root[data-nav="side"] .fab{overflow:hidden;white-space:nowrap;justify-content:flex-start;padding:0 10px;transition:width 280ms var(--ease)}
-  :root[data-nav="side"] .fab svg{margin-left:6px}
+  :root[data-nav="side"] .fab{overflow:hidden;white-space:nowrap;justify-content:flex-start;padding:0 0 0 12px;gap:14px;border-radius:calc(24px*var(--rs));transition:width 280ms var(--ease)}
   .navbtn{display:none}
   :root[data-nav="side"] .navbtn{display:grid;place-items:center;position:fixed;z-index:9;width:44px;height:44px;border-radius:calc(16px*var(--rs));color:var(--on-surface-variant);background:transparent}
   :root[data-nav="side"] .navbtn svg{width:24px;height:24px;fill:currentColor}
   :root[data-nav="side"] #navClose{top:22px;left:calc(var(--navw) - 58px)}
-  :root[data-nav="side"] #navOpen{top:22px;left:14px;width:44px;height:44px}
+  :root[data-nav="side"] #navOpen{top:22px;left:16px;width:44px;height:44px}
   :root[data-nav="side"] .navbtn{transition:opacity 180ms var(--ease),left 280ms var(--ease),background 150ms}
   :root[data-nav="side"][data-navhide="1"] #navClose,:root[data-nav="side"]:not([data-navhide="1"]) #navOpen{opacity:0;pointer-events:none}
   :root[data-nav="side"] .navbtn:hover{background:color-mix(in srgb,var(--primary) 14%,transparent)}
@@ -1923,7 +1923,7 @@ body::before{
 
   /* ---------- settings screen ---------- */
   var settingsDlg = $("settings");
-  var APP_VERSION = "1.10.1";
+  var APP_VERSION = "1.10.2";
   function radioBtn(cls, label, checked, onPick, extra){
     var b = el("button", cls + " state");
     b.type = "button";
