@@ -1058,7 +1058,7 @@ body::before{
 
   function accountsReady(){ return !!(SS && SS.configured); }
 
-  var SYNC_LABELS = { local: "This device", checking: "…", signedout: "Sign in", syncing: "Syncing…", synced: "Synced", offline: "Offline", error: "Not synced" };
+  var SYNC_LABELS = { local: "This device", checking: "…", signedout: "Sign in", syncing: "Syncing…", synced: "Backed up", offline: "Offline", error: "Not backed up" };
   var SYNC_TITLES = {
     local: "Saved on this device only. Tap to set up accounts.",
     checking: "Checking your account",
@@ -1954,7 +1954,7 @@ body::before{
 
   /* ---------- settings screen ---------- */
   var settingsDlg = $("settings");
-  var APP_VERSION = "1.12.2";
+  var APP_VERSION = "1.12.3";
   function radioBtn(cls, label, checked, onPick, extra){
     var b = el("button", cls + " state");
     b.type = "button";
