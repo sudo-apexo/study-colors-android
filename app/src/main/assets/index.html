@@ -563,6 +563,23 @@ body::before{
 
 }
 @media (max-width:899px){.set-col.navcol,.navbtn,.navhandle{display:none!important}}
+
+/* Backup + update live in the sidebar when it is open; Settings shows them otherwise */
+.sidenav,.sidesep{display:none}
+.set-btns .btn,.set-btns .btn.filled{border-radius:calc(12px*var(--rs));justify-content:center;text-align:center}
+@media (min-width:900px){
+  :root[data-nav="side"] .sidenav:not([hidden]){display:flex}
+  :root[data-nav="side"] .sidesep{display:block;order:4;height:1px;margin:8px 18px;background:var(--glass-edge)}
+  :root[data-nav="side"] #sideExport{order:5}
+  :root[data-nav="side"] #sideImport{order:6}
+  :root[data-nav="side"] #sideUpdate{order:7}
+  :root[data-nav="side"] .sidenav{height:auto;min-height:52px;padding-top:8px;padding-bottom:8px;border-radius:calc(14px*var(--rs))}
+  :root[data-nav="side"] .sidenav .sl{display:flex;flex-direction:column;min-width:0;text-align:left;color:var(--on-surface)}
+  :root[data-nav="side"] .sidenav small{font-size:calc(11px*var(--ts));line-height:1.3;color:var(--on-surface-variant);white-space:normal}
+  :root[data-nav="side"]:not([data-navhide="1"]) .navmove{display:none!important}
+  :root[data-nav="side"] .sync,:root[data-nav="side"] #themeBtn,:root[data-nav="side"] #settingsBtn{border-radius:calc(14px*var(--rs))}
+}
+@media (max-width:899px){.sidenav,.sidesep{display:none!important}}
 </style>
 
 <header class="appbar">
@@ -572,6 +589,10 @@ body::before{
     <button class="sync state" id="sync" type="button" data-mode="local" title="Where your subjects are saved"><svg class="sync-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg><span id="syncTxt">This device</span></button>
     <button class="iconbtn state" id="themeBtn" type="button" aria-label="Change theme" title="Theme"></button>
     <button class="iconbtn state" id="settingsBtn" type="button" aria-label="Settings" title="Settings (,)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg></button>
+    <span class="sidesep" aria-hidden="true"></span>
+    <button class="iconbtn state sidenav" id="sideExport" type="button" data-proxy="exportBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z"/></svg><span class="sl"><span>Export backup</span></span></button>
+    <button class="iconbtn state sidenav" id="sideImport" type="button" data-proxy="importBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20h14v-2H5v2zm0-10h4v6h6v-6h4l-7-7-7 7z"/></svg><span class="sl"><span>Import backup</span></span></button>
+    <button class="iconbtn state sidenav" id="sideUpdate" type="button" data-proxy="updBtn" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 1.01 7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14zm-4-2h-2v-4H8l4-5 4 5h-3z"/></svg><span class="sl"><span id="sideUpdateLbl">Check for updates</span><small id="sideUpdateMsg"></small></span></button>
   </div>
 </header>
 
@@ -1923,7 +1944,7 @@ body::before{
 
   /* ---------- settings screen ---------- */
   var settingsDlg = $("settings");
-  var APP_VERSION = "1.10.2";
+  var APP_VERSION = "1.11.0";
   function radioBtn(cls, label, checked, onPick, extra){
     var b = el("button", cls + " state");
     b.type = "button";
@@ -2054,6 +2075,39 @@ body::before{
   $("setBack").addEventListener("click", closeOverlay);
   $("motionSwitch").addEventListener("click", function(){ pick("motion", prefs.motion === "reduced" ? "auto" : "reduced"); });
 
+
+  /* ---------- sidebar shortcuts: same actions as the Settings buttons ---------- */
+  (function(){
+    var upd = null;
+    function tag(){
+      var ex = $("exportBtn");
+      if (ex && ex.parentElement) ex.parentElement.classList.add("navmove");
+      var u = $("updBtn");
+      if (!u) return false;
+      upd = u;
+      var wrap = u.parentElement; wrap.classList.add("navmove");
+      var msg = wrap.nextElementSibling;
+      if (msg && msg.classList.contains("acct-msg")) msg.classList.add("navmove");
+      $("sideUpdate").hidden = false;
+      function mirror(){
+        $("sideUpdateLbl").textContent = u.textContent;
+        $("sideUpdate").disabled = u.disabled;
+        $("sideUpdateMsg").textContent = msg ? msg.textContent : "";
+      }
+      mirror();
+      var mo = new MutationObserver(mirror);
+      mo.observe(u, {childList: true, characterData: true, subtree: true, attributes: true});
+      if (msg) mo.observe(msg, {childList: true, characterData: true, subtree: true});
+      return true;
+    }
+    var tries = 0;
+    (function wait(){ if (tag() || ++tries > 40) return; setTimeout(wait, 250); })();
+    document.querySelectorAll(".sidenav").forEach(function(b){
+      b.addEventListener("click", function(){
+        var t = $(b.getAttribute("data-proxy")); if (t) t.click();
+      });
+    });
+  })();
   /* ---------- sidebar: hide/show, drag to resize ---------- */
   function setNavHide(v){ prefs.navHide = v ? "1" : "0"; savePrefs(); applyLook(); }
   $("navClose").addEventListener("click", function(){ setNavHide(true); });
