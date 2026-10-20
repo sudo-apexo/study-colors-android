@@ -486,12 +486,12 @@ body::before{
 
 
 /* Square tiles at every zoom level: text sizes follow the tile width */
-.grid{grid-template-columns:repeat(auto-fill,minmax(min(100%,168px),1fr))}
+.grid{grid-template-columns:repeat(auto-fill,minmax(min(100%,190px),1fr))}
 .grid li{container-type:inline-size}
-.tile{aspect-ratio:1/1;height:auto;min-height:0;padding:9cqw;gap:3cqw;overflow:hidden}
-.tile .name{font-size:calc(clamp(13px,9.4cqw,21px)*var(--ts));line-height:1.22;-webkit-line-clamp:3}
+.tile{aspect-ratio:6/5;height:auto;min-height:0;padding:7.5cqw;gap:2cqw;overflow:hidden}
+.tile .name{font-size:calc(clamp(13px,8.6cqw,21px)*var(--ts));line-height:1.2;-webkit-line-clamp:2}
 .tile .bottom{gap:2cqw}
-.tile .meta{font-size:calc(clamp(10px,6.6cqw,13px)*var(--ts));line-height:1.3;gap:0}
+.tile .meta{font-size:calc(clamp(10px,6.2cqw,13px)*var(--ts));line-height:1.25;gap:0}
 .tile .meta span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tile .foot{font-size:calc(clamp(10.5px,7cqw,14px)*var(--ts));line-height:1.3}
 .tile .foot span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -1923,7 +1923,7 @@ body::before{
 
   /* ---------- settings screen ---------- */
   var settingsDlg = $("settings");
-  var APP_VERSION = "1.10.0";
+  var APP_VERSION = "1.10.1";
   function radioBtn(cls, label, checked, onPick, extra){
     var b = el("button", cls + " state");
     b.type = "button";
