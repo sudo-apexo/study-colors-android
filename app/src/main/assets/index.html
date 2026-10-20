@@ -486,43 +486,64 @@ body::before{
 
 /* ===== Sidebar on wide screens (PC) ===== */
 @media (min-width:900px){
-  :root{--side:272px}
-  .appbar{
-    position:fixed;left:0;top:0;bottom:0;width:var(--side);z-index:7;
+  :root{--navw:272px}
+  :root[data-nav="side"]{--side:var(--navw)}
+  :root[data-nav="side"][data-navhide="1"]{--side:0px}
+  :root[data-nav="side"] .appbar{
+    transition:transform 220ms var(--ease);
+    position:fixed;left:0;top:0;bottom:0;width:var(--navw);z-index:7;
     border-bottom:0;border-right:1px solid var(--glass-edge);
   }
-  .appbar .gutter{
+  :root[data-nav="side"] .appbar .gutter{
     max-width:none;height:100%;flex-direction:column;align-items:stretch;gap:6px;
     padding:20px 14px 96px;
   }
-  .logo{width:44px;height:44px;margin:4px 8px 0}
-  .appbar h1{flex:none;font-size:calc(22px*var(--ts));line-height:calc(28px*var(--ts));font-weight:600;letter-spacing:-.01em;padding:8px 10px 20px}
-  .sync,.iconbtn{
+  :root[data-nav="side"] .logo{width:44px;height:44px;margin:4px 8px 0}
+  :root[data-nav="side"] .appbar h1{flex:none;font-size:calc(22px*var(--ts));line-height:calc(28px*var(--ts));font-weight:600;letter-spacing:-.01em;padding:8px 10px 20px}
+  :root[data-nav="side"] .sync,:root[data-nav="side"] .iconbtn{
     width:100%;height:52px;min-height:52px;padding:0 16px;border:0;border-radius:calc(28px*var(--rs));
     display:flex;align-items:center;justify-content:flex-start;gap:14px;
     background:transparent;color:var(--on-surface);font-size:calc(14px*var(--ts));text-align:left;
   }
-  .sync-ic{display:block;width:24px;height:24px;flex:none;color:var(--on-surface-variant)}
-  .sync{order:1;color:var(--on-surface)}
-  .sync[data-mode="synced"],.sync[data-mode="cloud"],.sync[data-mode="error"],.sync[data-mode="signedout"]{background:transparent;border:0;color:var(--on-surface)}
-  .sync:hover,.iconbtn:hover{background:color-mix(in srgb,var(--primary) 12%,transparent)}
-  #syncTxt{position:static;width:auto;height:auto;clip:auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:calc(14px*var(--ts))}
-  .sync::after{display:none!important}
-  .iconbtn svg{width:24px;height:24px;fill:currentColor;flex:none;color:var(--on-surface-variant)}
-  #themeBtn{order:2;display:flex}
-  #settingsBtn{order:3}
-  #themeBtn::after{content:"Theme";font-size:calc(14px*var(--ts));color:var(--on-surface)}
-  #settingsBtn::after{content:"Settings";font-size:calc(14px*var(--ts));color:var(--on-surface)}
+  :root[data-nav="side"] .sync-ic{display:block;width:24px;height:24px;flex:none;color:var(--on-surface-variant)}
+  :root[data-nav="side"] .sync{order:1;color:var(--on-surface)}
+  :root[data-nav="side"] .sync[data-mode="synced"],:root[data-nav="side"] .sync[data-mode="cloud"],:root[data-nav="side"] .sync[data-mode="error"],:root[data-nav="side"] .sync[data-mode="signedout"]{background:transparent;border:0;color:var(--on-surface)}
+  :root[data-nav="side"] .sync:hover,:root[data-nav="side"] .iconbtn:hover{background:color-mix(in srgb,var(--primary) 12%,transparent)}
+  :root[data-nav="side"] #syncTxt{position:static;width:auto;height:auto;clip:auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:calc(14px*var(--ts))}
+  :root[data-nav="side"] .sync::after{display:none!important}
+  :root[data-nav="side"] .iconbtn svg{width:24px;height:24px;fill:currentColor;flex:none;color:var(--on-surface-variant)}
+  :root[data-nav="side"] #themeBtn{order:2;display:flex}
+  :root[data-nav="side"] #settingsBtn{order:3}
+  :root[data-nav="side"] #themeBtn::after{content:"Theme";font-size:calc(14px*var(--ts));color:var(--on-surface)}
+  :root[data-nav="side"] #settingsBtn::after{content:"Settings";font-size:calc(14px*var(--ts));color:var(--on-surface)}
   /* New subject button lives at the bottom of the sidebar */
-  .fab{
+  :root[data-nav="side"] .fab{
     left:14px;right:auto;bottom:20px;width:calc(var(--side) - 28px);height:56px;justify-content:center;z-index:8;
     background:var(--primary);color:var(--on-primary);border:0;
   }
-  main.gutter{margin-left:var(--side);margin-right:0;width:auto;max-width:none;padding:28px max(28px,4vw) 48px}
-  main.gutter > *{max-width:1180px}
-  .toast{left:calc(50% + var(--side)/2)}
+  :root[data-nav="side"] main.gutter{margin-left:var(--side);margin-right:0;width:auto;max-width:none;padding:28px max(28px,4vw) 48px}
+  :root[data-nav="side"] main.gutter > *{max-width:1180px}
+  :root[data-nav="side"] .toast{left:calc(50% + var(--side)/2)}
+  :root[data-nav="side"][data-navhide="1"] .appbar{transform:translateX(-102%);pointer-events:none}
+  :root[data-nav="side"][data-navhide="1"] .fab{left:auto;right:max(20px,env(safe-area-inset-right,0px));width:auto;padding:0 24px 0 20px;justify-content:flex-start;background:var(--primary-container);color:var(--on-primary-container);border:1px solid var(--glass-edge)}
+  :root[data-nav="side"] main.gutter{transition:margin-left 220ms var(--ease)}
+  .navbtn{display:none}
+  :root[data-nav="side"] .navbtn{display:grid;place-items:center;position:fixed;z-index:9;width:44px;height:44px;border-radius:calc(16px*var(--rs));color:var(--on-surface-variant);background:transparent}
+  :root[data-nav="side"] .navbtn svg{width:24px;height:24px;fill:currentColor}
+  :root[data-nav="side"] #navClose{top:22px;left:calc(var(--navw) - 58px)}
+  :root[data-nav="side"] #navOpen{top:16px;left:16px;background:var(--glass);border:1px solid var(--glass-edge);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);box-shadow:var(--glass-shadow)}
+  :root[data-nav="side"][data-navhide="1"] #navClose,:root[data-nav="side"]:not([data-navhide="1"]) #navOpen{display:none}
+  :root[data-nav="side"] .navbtn:hover{background:color-mix(in srgb,var(--primary) 14%,transparent)}
+  .navhandle{display:none}
+  :root[data-nav="side"] .navhandle{display:block;position:fixed;z-index:9;top:0;bottom:0;left:calc(var(--navw) - 6px);width:12px;cursor:col-resize;touch-action:none}
+  :root[data-nav="side"] .navhandle::after{content:"";position:absolute;top:50%;left:5px;width:3px;height:44px;margin-top:-22px;border-radius:2px;background:var(--outline);opacity:0;transition:opacity 150ms}
+  :root[data-nav="side"] .navhandle:hover::after,:root[data-nav="side"] .navhandle.drag::after{opacity:.55}
+  :root[data-nav="side"][data-navhide="1"] .navhandle{display:none}
+  :root[data-nav="side"].navdrag,:root[data-nav="side"].navdrag *{cursor:col-resize!important;user-select:none}
+  :root[data-nav="side"].navdrag .appbar,:root[data-nav="side"].navdrag main.gutter{transition:none}
+
 }
-@media (min-width:900px) and (max-width:1100px){:root{--side:240px}}
+@media (max-width:899px){.set-col.navcol{display:none}}
 </style>
 
 <header class="appbar">
@@ -534,6 +555,10 @@ body::before{
     <button class="iconbtn state" id="settingsBtn" type="button" aria-label="Settings" title="Settings (,)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg></button>
   </div>
 </header>
+
+<button class="navbtn state" id="navClose" type="button" aria-label="Hide sidebar" title="Hide sidebar (Ctrl+B)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zM9 19H5V5h4v14zm10 0h-8V5h8v14z"/></svg></button>
+<button class="navbtn state" id="navOpen" type="button" aria-label="Show sidebar" title="Show sidebar (Ctrl+B)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zM9 19H5V5h4v14zm10 0h-8V5h8v14z"/></svg></button>
+<div class="navhandle" id="navHandle" title="Drag to resize. Double-click to reset." aria-hidden="true"></div>
 
 <main class="gutter">
   <section class="card" id="overview" aria-label="Overview">
@@ -654,6 +679,10 @@ body::before{
     <div class="set-col">
       <div class="lbl"><b id="lblSize">Text size</b></div>
       <div class="seg" role="radiogroup" aria-labelledby="lblSize" id="segSize"></div>
+    </div>
+    <div class="set-col navcol">
+      <div class="lbl"><b id="lblNav">Navigation (PC)</b><span>Sidebar or the top bar</span></div>
+      <div class="seg" role="radiogroup" aria-labelledby="lblNav" id="segNav"></div>
     </div>
     <div class="set-col">
       <div class="lbl"><b id="lblShape">Corner style</b></div>
@@ -842,13 +871,13 @@ body::before{
   var activeId = null;
   var filter = "", query = "";
   var PREFS_KEY = "study-colors-prefs";
-  var prefs = { theme: "system", sort: "added", remind: true, notified: {}, accent: "green", font: "inter", fontCustom: "", size: "m", shape: "round", motion: "auto" };
+  var prefs = { theme: "system", sort: "added", remind: true, notified: {}, accent: "green", font: "inter", fontCustom: "", nav: "side", navHide: "0", navW: "272", size: "m", shape: "round", motion: "auto" };
   try {
     var savedPrefs = JSON.parse(localStorage.getItem(PREFS_KEY) || "{}");
     if (typeof savedPrefs.theme === "string") prefs.theme = savedPrefs.theme;
     if (typeof savedPrefs.sort === "string") prefs.sort = savedPrefs.sort;
     if (typeof savedPrefs.remind === "boolean") prefs.remind = savedPrefs.remind;
-    ["accent", "font", "fontCustom", "size", "shape", "motion"].forEach(function(k){ if (typeof savedPrefs[k] === "string") prefs[k] = savedPrefs[k]; });
+    ["accent", "font", "fontCustom", "size", "shape", "motion", "nav", "navHide", "navW"].forEach(function(k){ if (typeof savedPrefs[k] === "string") prefs[k] = savedPrefs[k]; });
     if (savedPrefs.notified && typeof savedPrefs.notified === "object") prefs.notified = savedPrefs.notified;
     // New look: move people still on the old pixel default to the smooth font, once.
     if (savedPrefs.skin !== "2" && (!savedPrefs.font || savedPrefs.font === "monocraft")) prefs.font = "inter";
@@ -1671,6 +1700,10 @@ body::before{
     var shape = findIn(SHAPES, prefs.shape); prefs.shape = shape[0];
     st.setProperty("--rs", String(shape[2]));
     if (prefs.motion === "reduced") root.setAttribute("data-motion", "reduced"); else root.removeAttribute("data-motion");
+    root.setAttribute("data-nav", prefs.nav === "top" ? "top" : "side");
+    if (prefs.navHide === "1") root.setAttribute("data-navhide", "1"); else root.removeAttribute("data-navhide");
+    var nw = Math.max(200, Math.min(420, parseInt(prefs.navW, 10) || 272));
+    st.setProperty("--navw", nw + "px");
     if (typeof renderSettings === "function") renderSettings();
   }
   if (window.matchMedia){
@@ -1871,7 +1904,7 @@ body::before{
 
   /* ---------- settings screen ---------- */
   var settingsDlg = $("settings");
-  var APP_VERSION = "1.8.0";
+  var APP_VERSION = "1.9.0";
   function radioBtn(cls, label, checked, onPick, extra){
     var b = el("button", cls + " state");
     b.type = "button";
@@ -1899,6 +1932,7 @@ body::before{
     fillSeg("segTheme", [["system", "System"], ["light", "Light"], ["dark", "Dark"]], "theme");
     fillSeg("segSize", SIZES, "size");
     fillSeg("segShape", SHAPES, "shape");
+    fillSeg("segNav", [["side", "Sidebar"], ["top", "Top bar"]], "nav");
     var ac = $("accents"); ac.textContent = "";
     var dark = isDarkNow();
     ACCENTS.forEach(function(a){
@@ -2000,8 +2034,40 @@ body::before{
   $("setClose").addEventListener("click", closeOverlay);
   $("setBack").addEventListener("click", closeOverlay);
   $("motionSwitch").addEventListener("click", function(){ pick("motion", prefs.motion === "reduced" ? "auto" : "reduced"); });
+
+  /* ---------- sidebar: hide/show, drag to resize ---------- */
+  function setNavHide(v){ prefs.navHide = v ? "1" : "0"; savePrefs(); applyLook(); }
+  $("navClose").addEventListener("click", function(){ setNavHide(true); });
+  $("navOpen").addEventListener("click", function(){ setNavHide(false); });
+  (function(){
+    var handle = $("navHandle"), root = document.documentElement, startX = 0, startW = 0, dragging = false;
+    handle.addEventListener("pointerdown", function(e){
+      if (e.button !== 0) return;
+      dragging = true; startX = e.clientX; startW = parseInt(prefs.navW, 10) || 272;
+      handle.setPointerCapture(e.pointerId); handle.classList.add("drag"); root.classList.add("navdrag");
+      e.preventDefault();
+    });
+    handle.addEventListener("pointermove", function(e){
+      if (!dragging) return;
+      var w = Math.max(200, Math.min(420, Math.round(startW + e.clientX - startX)));
+      root.style.setProperty("--navw", w + "px");
+      prefs.navW = String(w);
+    });
+    function end(){
+      if (!dragging) return;
+      dragging = false; handle.classList.remove("drag"); root.classList.remove("navdrag"); savePrefs();
+    }
+    handle.addEventListener("pointerup", end);
+    handle.addEventListener("pointercancel", end);
+    handle.addEventListener("dblclick", function(){ prefs.navW = "272"; savePrefs(); applyLook(); });
+  })();
+  document.addEventListener("keydown", function(e){
+    if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && (e.key === "b" || e.key === "B") && prefs.nav !== "top" && window.innerWidth >= 900){
+      e.preventDefault(); setNavHide(prefs.navHide !== "1");
+    }
+  });
   $("resetLook").addEventListener("click", function(){
-    prefs.accent = "green"; prefs.font = "inter"; prefs.fontCustom = ""; $("fontCustomInput").value = ""; prefs.size = "m"; prefs.shape = "round"; prefs.motion = "auto"; prefs.theme = "system";
+    prefs.accent = "green"; prefs.font = "inter"; prefs.fontCustom = ""; $("fontCustomInput").value = ""; prefs.size = "m"; prefs.nav = "side"; prefs.navHide = "0"; prefs.navW = "272"; prefs.shape = "round"; prefs.motion = "auto"; prefs.theme = "system";
     savePrefs(); applyTheme();
     toast("Appearance reset");
   });
