@@ -488,7 +488,7 @@ body::before{
 @media (min-width:900px){
   :root{--navw:272px}
   :root[data-nav="side"]{--side:var(--navw)}
-  :root[data-nav="side"][data-navhide="1"]{--side:0px}
+  :root[data-nav="side"][data-navhide="1"]{--side:72px}
   :root[data-nav="side"] .appbar{
     transition:transform 220ms var(--ease);
     position:fixed;left:0;top:0;bottom:0;width:var(--navw);z-index:7;
@@ -524,14 +524,15 @@ body::before{
   :root[data-nav="side"] main.gutter{margin-left:var(--side);margin-right:0;width:auto;max-width:none;padding:28px max(28px,4vw) 48px}
   :root[data-nav="side"] main.gutter > *{max-width:1180px}
   :root[data-nav="side"] .toast{left:calc(50% + var(--side)/2)}
-  :root[data-nav="side"][data-navhide="1"] .appbar{transform:translateX(-102%);pointer-events:none}
+  :root[data-nav="side"][data-navhide="1"] .appbar{width:72px}
+  :root[data-nav="side"][data-navhide="1"] .appbar .gutter{display:none}
   :root[data-nav="side"][data-navhide="1"] .fab{left:auto;right:max(20px,env(safe-area-inset-right,0px));width:auto;padding:0 24px 0 20px;justify-content:flex-start;background:var(--primary-container);color:var(--on-primary-container);border:1px solid var(--glass-edge)}
   :root[data-nav="side"] main.gutter{transition:margin-left 220ms var(--ease)}
   .navbtn{display:none}
   :root[data-nav="side"] .navbtn{display:grid;place-items:center;position:fixed;z-index:9;width:44px;height:44px;border-radius:calc(16px*var(--rs));color:var(--on-surface-variant);background:transparent}
   :root[data-nav="side"] .navbtn svg{width:24px;height:24px;fill:currentColor}
   :root[data-nav="side"] #navClose{top:22px;left:calc(var(--navw) - 58px)}
-  :root[data-nav="side"] #navOpen{top:16px;left:16px;background:var(--glass);border:1px solid var(--glass-edge);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);box-shadow:var(--glass-shadow)}
+  :root[data-nav="side"] #navOpen{top:22px;left:14px;width:44px;height:44px}
   :root[data-nav="side"][data-navhide="1"] #navClose,:root[data-nav="side"]:not([data-navhide="1"]) #navOpen{display:none}
   :root[data-nav="side"] .navbtn:hover{background:color-mix(in srgb,var(--primary) 14%,transparent)}
   .navhandle{display:none}
@@ -1904,7 +1905,7 @@ body::before{
 
   /* ---------- settings screen ---------- */
   var settingsDlg = $("settings");
-  var APP_VERSION = "1.9.0";
+  var APP_VERSION = "1.9.1";
   function radioBtn(cls, label, checked, onPick, extra){
     var b = el("button", cls + " state");
     b.type = "button";
