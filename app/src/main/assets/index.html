@@ -583,6 +583,16 @@ body::before{
 .iconbtn svg.lineicon,.sidenav svg.lineicon{fill:none!important;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .iconbtn svg.lineicon .soft{fill:currentColor;fill-opacity:.16}
 :root[data-nav="side"] .iconbtn svg.lineicon{fill:none!important}
+/* Notes formatting toolbar and preview */
+.fmtbar{display:flex;align-items:center;gap:2px;padding:4px;border-radius:calc(16px*var(--rs));background:var(--glass);border:1px solid var(--glass-edge);align-self:flex-start}
+.fmtbtn{height:36px;min-width:36px;padding:0 8px;border-radius:calc(12px*var(--rs));display:inline-flex;align-items:center;justify-content:center;gap:6px;color:var(--on-surface);font-size:calc(14px*var(--ts));font-weight:600}
+.fmtbtn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.fmtbtn[data-fmt="bold"] svg{fill:none;stroke-width:2.6}
+.fmtsep{width:1px;height:22px;background:var(--glass-edge);margin:0 4px}
+.notepreview{padding:10px 14px;border-radius:calc(16px*var(--rs));background:color-mix(in srgb,var(--on-surface) 5%,transparent);font-size:calc(14px*var(--ts));line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere;max-height:160px;overflow:auto}
+.notepreview code{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:.92em;padding:1px 6px;border-radius:6px;background:color-mix(in srgb,var(--on-surface) 12%,transparent)}
+.notepreview a{color:var(--primary);text-decoration:underline;text-underline-offset:2px}
+.notepreview s{opacity:.75}
 @media (max-width:899px){.sidenav,.sidesep{display:none!important}}
 </style>
 
@@ -660,10 +670,19 @@ body::before{
   </div>
   <div class="group">
     <h2>Details</h2>
+    <div class="fmtbar" id="fmtBar" role="toolbar" aria-label="Format notes">
+      <button class="fmtbtn state" type="button" data-fmt="bold" title="Bold (Ctrl+B)" aria-label="Bold"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h6a3.5 3.5 0 0 1 0 7H7zM7 12h7a3.5 3.5 0 0 1 0 7H7z"/></svg></button>
+      <button class="fmtbtn state" type="button" data-fmt="italic" title="Italic (Ctrl+I)" aria-label="Italic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 5h8M6 19h8M14 5l-4 14"/></svg></button>
+      <button class="fmtbtn state" type="button" data-fmt="strike" title="Strikethrough" aria-label="Strikethrough"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M16.5 7.5C16 6 14.3 5 12 5 9.6 5 8 6.1 8 7.8c0 1.2.8 2 2.4 2.6M7.5 16.5C8 18 9.7 19 12 19c2.5 0 4.2-1.2 4.2-3 0-.8-.3-1.4-.9-1.9"/></svg></button>
+      <button class="fmtbtn state" type="button" data-fmt="code" title="Code" aria-label="Code"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 7 4 12l4.5 5M15.5 7 20 12l-4.5 5"/></svg></button>
+      <span class="fmtsep" aria-hidden="true"></span>
+      <button class="fmtbtn wide state" type="button" data-fmt="link" title="Link (Ctrl+K)" aria-label="Link"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3A4 4 0 0 0 11 18.7l1-1"/></svg><span>Link</span></button>
+    </div>
     <div class="field area">
       <textarea id="noteInput" maxlength="500" placeholder=" " rows="3"></textarea>
       <label for="noteInput">Notes</label>
     </div>
+    <div class="notepreview" id="notePreview" hidden></div>
     <div class="field always">
       <input id="examInput" type="date">
       <label for="examInput">Exam date</label>
@@ -1371,7 +1390,7 @@ body::before{
     var meta = el("span", "meta");
     if (s.exam) meta.appendChild(el("span", null, examText(s.exam)));
     if (c && s.t) meta.appendChild(el("span", null, agoText(s.t)));
-    if (s.note) meta.appendChild(el("span", "note", s.note.split("\n")[0]));
+    if (s.note) meta.appendChild(el("span", "note", plainNote(s.note.split("\n")[0])));
     if (meta.childNodes.length) bottom.appendChild(meta);
     var foot = el("span", "foot");
     foot.appendChild(el("span", null, c ? c.n : "No color yet"));
@@ -1528,6 +1547,7 @@ body::before{
     activeId = id;
     renameInput.value = s.name;
     noteInput.value = s.note || "";
+    if (typeof updateNotePreview === "function") updateNotePreview();
     examInput.value = s.exam || "";
     buildSwatches(s);
     disarmDelete();
@@ -1954,7 +1974,7 @@ body::before{
 
   /* ---------- settings screen ---------- */
   var settingsDlg = $("settings");
-  var APP_VERSION = "1.12.3";
+  var APP_VERSION = "1.13.0";
   function radioBtn(cls, label, checked, onPick, extra){
     var b = el("button", cls + " state");
     b.type = "button";
@@ -2086,6 +2106,66 @@ body::before{
   $("motionSwitch").addEventListener("click", function(){ pick("motion", prefs.motion === "reduced" ? "auto" : "reduced"); });
 
 
+
+  /* ---------- note formatting: **bold** *italic* ~~strike~~ `code` [text](https://link) ---------- */
+  var INLINE_RE = /\*\*([^*]+)\*\*|~~([^~]+)~~|`([^`]+)`|\*([^*\n]+)\*|\[([^\]\n]+)\]\((https?:\/\/[^\s)]+)\)/g;
+  function renderInline(text, parent){
+    var last = 0, m; INLINE_RE.lastIndex = 0;
+    var re = new RegExp(INLINE_RE.source, "g");
+    while ((m = re.exec(text))){
+      if (m.index > last) parent.appendChild(document.createTextNode(text.slice(last, m.index)));
+      var node;
+      if (m[1] !== undefined){ node = document.createElement("strong"); renderInline(m[1], node); }
+      else if (m[2] !== undefined){ node = document.createElement("s"); renderInline(m[2], node); }
+      else if (m[3] !== undefined){ node = document.createElement("code"); node.textContent = m[3]; }
+      else if (m[4] !== undefined){ node = document.createElement("em"); renderInline(m[4], node); }
+      else { node = document.createElement("a"); node.href = m[6]; node.target = "_blank"; node.rel = "noopener noreferrer"; renderInline(m[5], node); }
+      parent.appendChild(node);
+      last = m.index + m[0].length;
+    }
+    if (last < text.length) parent.appendChild(document.createTextNode(text.slice(last)));
+  }
+  function plainNote(t){
+    return String(t).replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, "$1").replace(/\*\*|~~|`/g, "").replace(/\*([^*]+)\*/g, "$1");
+  }
+  var notePreview = $("notePreview");
+  function updateNotePreview(){
+    var v = noteInput.value;
+    notePreview.textContent = "";
+    var has = /(\*\*|~~|`|\*[^*]+\*|\]\(https?:)/.test(v);
+    notePreview.hidden = !(v.trim() && has);
+    if (!notePreview.hidden) renderInline(v, notePreview);
+  }
+  function wrapNote(kind){
+    var ta = noteInput, a = ta.selectionStart, b = ta.selectionEnd, v = ta.value, sel = v.slice(a, b);
+    var pre = {bold: "**", italic: "*", strike: "~~", code: "`"}[kind], ins, ca, cb;
+    if (kind === "link"){
+      var isUrl = /^https?:\/\//.test(sel);
+      var text = isUrl ? "link" : (sel || "link");
+      var url = isUrl ? sel : "https://";
+      ins = "[" + text + "](" + url + ")";
+      if (isUrl){ ca = a + 1; cb = a + 1 + text.length; }
+      else { ca = a + 1 + text.length + 2; cb = ca + url.length; }
+    } else {
+      var inner = sel || "text";
+      ins = pre + inner + pre; ca = a + pre.length; cb = ca + inner.length;
+    }
+    if (v.length - (b - a) + ins.length > 500){ toast("Notes are limited to 500 characters"); return; }
+    ta.focus();
+    ta.value = v.slice(0, a) + ins + v.slice(b);
+    ta.setSelectionRange(ca, cb);
+    updateNotePreview(); saveSheetFields();
+  }
+  $("fmtBar").addEventListener("mousedown", function(e){ e.preventDefault(); });
+  $("fmtBar").querySelectorAll("[data-fmt]").forEach(function(btn){
+    btn.addEventListener("click", function(){ wrapNote(btn.getAttribute("data-fmt")); });
+  });
+  noteInput.addEventListener("input", updateNotePreview);
+  noteInput.addEventListener("keydown", function(e){
+    if (!(e.ctrlKey || e.metaKey) || e.altKey || e.shiftKey) return;
+    var k = e.key.toLowerCase(), kind = k === "b" ? "bold" : k === "i" ? "italic" : k === "k" ? "link" : "";
+    if (kind){ e.preventDefault(); e.stopPropagation(); wrapNote(kind); }
+  });
   /* ---------- sidebar shortcuts: same actions as the Settings buttons ---------- */
   (function(){
     var upd = null;
