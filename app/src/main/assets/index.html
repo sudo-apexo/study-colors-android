@@ -612,6 +612,9 @@ body::before{
 .rte b,.rte strong,.tile .name b,.tile .name strong,.tile .meta b,.tile .meta strong{font-weight:800}
 .rte i,.rte em,.tile .name i,.tile .name em,.tile .meta i,.tile .meta em{font-style:italic}
 .rte s,.rte strike,.tile s{text-decoration:line-through}
+/* Wavy overview bar */
+.bar.wavy,.bar{display:block;height:28px;gap:0;border-radius:0;background:none;box-shadow:none;overflow:visible;color:var(--on-surface-variant)}
+.bar svg{display:block;width:100%;height:28px;overflow:visible}
 @media (max-width:899px){.sidenav,.sidesep{display:none!important}}
 /* Phones: the earlier look, two tiles per row with their own height */
 @media (max-width:899px){
@@ -1480,21 +1483,89 @@ body::before{
     return chip;
   }
 
+
+  /* ---------- overview bar: a wavy, moving "worm" per color ---------- */
+  var SVGNS = "http://www.w3.org/2000/svg";
+  var waveSegs = [], waveEls = [], waveStart = 0, waveW = 0;
+  var WAVE_H = 28, WAVE_AMP = 4.2, WAVE_LEN = 30, WAVE_GAP = 10, WAVE_CAP = 4;
+  function motionOK(){
+    return prefs.motion !== "reduced" && !(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  }
+  function wavePath(x0, x1, phase){
+    var d = "", mid = WAVE_H / 2, k = 2 * Math.PI / WAVE_LEN;
+    for (var x = x0; x <= x1 + 0.01; x += 3){
+      var y = mid + WAVE_AMP * Math.sin((x - x0) * k - phase);
+      d += (d ? "L" : "M") + x.toFixed(1) + " " + y.toFixed(2);
+    }
+    return d;
+  }
+  function setWave(segs){ waveSegs = segs; layoutWave(); }
+  function layoutWave(){
+    bar.textContent = "";
+    waveEls = [];
+    var W = bar.clientWidth;
+    waveW = W;
+    if (!waveSegs.length || W < 40){ stopWave(); return; }
+    var svg = document.createElementNS(SVGNS, "svg");
+    svg.setAttribute("width", W); svg.setAttribute("height", WAVE_H);
+    svg.setAttribute("viewBox", "0 0 " + W + " " + WAVE_H);
+    svg.setAttribute("aria-hidden", "true");
+    var total = 0; waveSegs.forEach(function(s){ total += s.n; });
+    var gaps = WAVE_GAP * (waveSegs.length - 1), room = W - gaps - WAVE_CAP * 2 * waveSegs.length;
+    var widths = waveSegs.map(function(s){ return Math.max(14, room * s.n / total); });
+    var sum = widths.reduce(function(a, b){ return a + b; }, 0);
+    if (sum > room){ widths = widths.map(function(w){ return w * room / sum; }); }
+    var x = WAVE_CAP;
+    waveSegs.forEach(function(sg, i){
+      var x0 = x, x1 = x + widths[i];
+      var path = document.createElementNS(SVGNS, "path");
+      path.setAttribute("fill", "none"); path.setAttribute("stroke-linecap", "round"); path.setAttribute("stroke-linejoin", "round");
+      var t = document.createElementNS(SVGNS, "title"); t.textContent = sg.title; path.appendChild(t);
+      if (sg.none){
+        path.setAttribute("d", "M" + x0 + " " + WAVE_H / 2 + "L" + x1 + " " + WAVE_H / 2);
+        path.setAttribute("stroke", "currentColor"); path.setAttribute("stroke-opacity", ".4"); path.setAttribute("stroke-width", "4");
+        svg.appendChild(path);
+        var dot = document.createElementNS(SVGNS, "circle");
+        dot.setAttribute("cx", x1); dot.setAttribute("cy", WAVE_H / 2); dot.setAttribute("r", "3"); dot.setAttribute("fill", "currentColor"); dot.setAttribute("fill-opacity", ".6");
+        svg.appendChild(dot);
+      } else {
+        path.setAttribute("stroke", sg.color); path.setAttribute("stroke-width", "7.5");
+        path.setAttribute("d", wavePath(x0, x1, 0));
+        svg.appendChild(path);
+        waveEls.push({ el: path, x0: x0, x1: x1, off: i * 0.9 });
+      }
+      x = x1 + WAVE_GAP + WAVE_CAP * 2;
+    });
+    bar.appendChild(svg);
+    if (motionOK() && waveEls.length) startWave(); else stopWave();
+  }
+  var waveTimer = 0;
+  function tickWave(){
+    var now = performance.now();
+    if (!waveStart) waveStart = now;
+    var phase = (now - waveStart) / 1000 * 2.6;
+    waveEls.forEach(function(w){ w.el.setAttribute("d", wavePath(w.x0, w.x1, phase + w.off)); });
+  }
+  function startWave(){ stopWave(); waveTimer = setInterval(tickWave, 33); }
+  function stopWave(){ if (waveTimer) clearInterval(waveTimer); waveTimer = 0; waveStart = 0; }
+  if (window.ResizeObserver){ new ResizeObserver(function(){ if (bar.clientWidth !== waveW) layoutWave(); }).observe(bar); }
+  document.addEventListener("visibilitychange", function(){ if (document.hidden) stopWave(); else if (motionOK() && waveEls.length) startWave(); });
+
   function renderOverview(subs, counts){
     countEl.textContent = subs.length + (subs.length === 1 ? " subject" : " subjects");
     bar.textContent = ""; legend.textContent = "";
     bar.hidden = legend.hidden = subs.length === 0;
+    var segs = [];
     COLORS.forEach(function(c){
       var n = counts[c.k]; if (!n) return;
-      var seg = el("span"); seg.style.flex = String(n); seg.style.background = c.bg; seg.title = c.n + ": " + n;
-      bar.appendChild(seg);
+      segs.push({ n: n, color: c.bg, title: c.n + ": " + n });
       legend.appendChild(chipFor(c.k, c.n, n, c.bg));
     });
     if (counts.none){
-      var seg2 = el("span", "none"); seg2.style.flex = String(counts.none); seg2.title = "No color yet: " + counts.none;
-      bar.appendChild(seg2);
+      segs.push({ n: counts.none, none: true, title: "No color yet: " + counts.none });
       legend.appendChild(chipFor("none", "No color", counts.none, null));
     }
+    setWave(segs);
     bar.setAttribute("aria-label", subs.length + " subjects: " + (legend.textContent || "none yet"));
 
     var hint = "";
@@ -1996,7 +2067,7 @@ body::before{
 
   /* ---------- settings screen ---------- */
   var settingsDlg = $("settings");
-  var APP_VERSION = "1.15.1";
+  var APP_VERSION = "1.16.0";
   function radioBtn(cls, label, checked, onPick, extra){
     var b = el("button", cls + " state");
     b.type = "button";
