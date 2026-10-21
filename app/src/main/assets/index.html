@@ -594,6 +594,19 @@ body::before{
 .notepreview a{color:var(--primary);text-decoration:underline;text-underline-offset:2px}
 .notepreview s{opacity:.75}
 @media (max-width:899px){.sidenav,.sidesep{display:none!important}}
+/* Phones: the earlier look, two tiles per row with their own height */
+@media (max-width:899px){
+  .grid{grid-template-columns:repeat(auto-fill,minmax(min(100%,156px),1fr));gap:12px}
+  .tile{aspect-ratio:auto;min-height:152px;padding:16px;gap:16px;border-radius:calc(24px*var(--rs))}
+  .tile .name{font-size:calc(16px*var(--ts));line-height:calc(22px*var(--ts));-webkit-line-clamp:4}
+  .tile .bottom{gap:8px}
+  .tile .meta{font-size:calc(12px*var(--ts));line-height:calc(16px*var(--ts));gap:2px}
+  .tile .meta span{white-space:normal;overflow:visible;text-overflow:clip}
+  .tile .meta .note{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tile .foot{font-size:calc(12px*var(--ts));line-height:calc(16px*var(--ts))}
+  .tile .foot span{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
+  .tile .foot svg{width:20px;height:20px}
+}
 </style>
 
 <header class="appbar">
@@ -1974,7 +1987,7 @@ body::before{
 
   /* ---------- settings screen ---------- */
   var settingsDlg = $("settings");
-  var APP_VERSION = "1.13.0";
+  var APP_VERSION = "1.13.1";
   function radioBtn(cls, label, checked, onPick, extra){
     var b = el("button", cls + " state");
     b.type = "button";
