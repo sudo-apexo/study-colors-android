@@ -35,6 +35,7 @@ final class Updater {
     private File ready;
     private String downloadUrl;
     private volatile boolean busy;
+    private boolean pendingInstall;
 
     Updater(Activity activity, WebView web) {
         this.activity = activity;
@@ -69,15 +70,31 @@ final class Updater {
     void check() {
         if (busy) return;
         busy = true;
+        if (ready != null) {
+            ready.delete();
+            ready = null;
+        }
         report("checking", null);
         new Thread(() -> {
             try {
-                HttpURLConnection c = (HttpURLConnection) new URL(RELEASE_URL).openConnection();
-                c.setConnectTimeout(15000);
-                c.setReadTimeout(15000);
-                c.setRequestProperty("Accept", "application/vnd.github+json");
-                if (c.getResponseCode() != 200) throw new Exception("http " + c.getResponseCode());
-                JSONObject json = new JSONObject(read(c.getInputStream()));
+                JSONObject json = null;
+                Exception last = null;
+                for (int attempt = 0; attempt < 3 && json == null; attempt++) {
+                    try {
+                        HttpURLConnection c = (HttpURLConnection) new URL(RELEASE_URL).openConnection();
+                        c.setConnectTimeout(12000);
+                        c.setReadTimeout(12000);
+                        c.setUseCaches(false);
+                        c.setRequestProperty("Accept", "application/vnd.github+json");
+                        c.setRequestProperty("User-Agent", "StudyColors-Android");
+                        if (c.getResponseCode() != 200) throw new Exception("http " + c.getResponseCode());
+                        json = new JSONObject(read(c.getInputStream()));
+                    } catch (Exception e) {
+                        last = e;
+                        Thread.sleep(700);
+                    }
+                }
+                if (json == null) throw last != null ? last : new Exception("no data");
                 Matcher m = BUILD.matcher(json.optString("body", ""));
                 int remote = m.find() ? Integer.parseInt(m.group(1)) : 0;
                 String url = null;
@@ -106,7 +123,12 @@ final class Updater {
             launchInstaller();
             return;
         }
-        if (busy || downloadUrl == null) return;
+        if (busy) return;
+        if (downloadUrl == null) {
+            // Nothing checked yet: check first, the page then asks again if an update exists.
+            check();
+            return;
+        }
         busy = true;
         report("downloading", "percent:0");
         final String url = downloadUrl;
@@ -140,6 +162,12 @@ final class Updater {
                     }
                 }
                 if (done < 100000) throw new Exception("too small");
+                android.content.pm.PackageInfo info = activity.getPackageManager()
+                        .getPackageArchiveInfo(out.getAbsolutePath(), 0);
+                if (info == null || info.getLongVersionCode() <= installedBuild()) {
+                    out.delete();
+                    throw new Exception("not newer");
+                }
                 ready = out;
                 report("ready", null);
                 activity.runOnUiThread(this::launchInstaller);
@@ -154,13 +182,19 @@ final class Updater {
     /** Called when the app comes back to the front, e.g. after the permission screen. */
     void resumed() {
         if (ready != null && ready.exists() && !busy && activity.getPackageManager().canRequestPackageInstalls()) {
-            report("ready", null);
+            if (pendingInstall) {
+                pendingInstall = false;
+                launchInstaller();
+            } else {
+                report("ready", null);
+            }
         }
     }
 
     private void launchInstaller() {
         if (ready == null || !ready.exists()) return;
         if (!activity.getPackageManager().canRequestPackageInstalls()) {
+            pendingInstall = true;
             report("permission", null);
             Intent s = new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
                     Uri.parse("package:" + activity.getPackageName()));

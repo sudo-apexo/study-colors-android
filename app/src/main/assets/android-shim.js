@@ -61,7 +61,7 @@
 
 
   /* ---- One-tap updates (Settings > About) ---- */
-  var upBtn, upMsg, upState = "idle";
+  var upBtn, upMsg, upState = "idle", upAuto = false;
   function setUp(state, text, label, disabled) {
     upState = state;
     if (upMsg) upMsg.textContent = text;
@@ -70,13 +70,16 @@
   window.__studyUpdate = function (u) {
     var v = "Version " + (B.appVersionName() || "") + " (build " + B.appBuild() + "). ";
     if (u.state === "checking") setUp("checking", v + "Checking for updates\u2026", "Checking\u2026", true);
-    else if (u.state === "current") setUp("current", v + "You have the newest version.", "Check for updates", false);
-    else if (u.state === "available") setUp("available", v + "A new version is ready.", "Update now", false);
+    else if (u.state === "current") { upAuto = false; setUp("current", v + "You have the newest version.", "Check for updates", false); }
+    else if (u.state === "available") {
+      setUp("available", v + "A new version is ready.", "Update now", false);
+      if (upAuto) { upAuto = false; B.installUpdate(); }
+    }
     else if (u.state === "downloading") setUp("downloading", v + "Downloading\u2026 " + (u.percent || 0) + "%", "Downloading\u2026", true);
     else if (u.state === "ready") setUp("available", v + "Downloaded. Tap Update now, then Install.", "Update now", false);
     else if (u.state === "permission") setUp("available", v + "Allow installs from Study Colors on the screen that opened, then come back and tap Update now.", "Update now", false);
     else if (u.state === "installing") setUp("available", v + "Tap Install on the Android screen.", "Update now", false);
-    else setUp("idle", v + "Could not reach GitHub. Check your connection.", "Check for updates", false);
+    else { upAuto = false; setUp("idle", v + (u.code === "download" ? "The download failed. Tap to try again." : "Could not reach GitHub. Check your connection."), "Check for updates", false); }
   };
   function addUpdateRow() {
     var about = document.getElementById("aboutLine");
@@ -93,7 +96,8 @@
     wrap.appendChild(upBtn);
     about.parentNode.insertBefore(wrap, upMsg);
     upBtn.addEventListener("click", function () {
-      if (upState === "available") B.installUpdate(); else B.checkUpdate();
+      if (upState === "available") B.installUpdate();
+      else { upAuto = true; B.checkUpdate(); }
     });
     window.__studyUpdate({ state: "idle" });
     upMsg.textContent = "Version " + (B.appVersionName() || "") + " (build " + B.appBuild() + ").";
