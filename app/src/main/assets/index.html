@@ -583,16 +583,30 @@ body::before{
 .iconbtn svg.lineicon,.sidenav svg.lineicon{fill:none!important;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .iconbtn svg.lineicon .soft{fill:currentColor;fill-opacity:.16}
 :root[data-nav="side"] .iconbtn svg.lineicon{fill:none!important}
-/* Notes formatting toolbar and preview */
-.fmtbar{display:flex;align-items:center;gap:2px;padding:4px;border-radius:calc(16px*var(--rs));background:var(--glass);border:1px solid var(--glass-edge);align-self:flex-start}
+/* Rich text fields (name and notes) and the floating format bar */
+.field.rich input,.field.rich textarea{position:absolute;left:0;top:0;width:1px;height:1px;opacity:0;pointer-events:none;padding:0;border:0}
+.rte{width:100%;min-height:56px;padding:16px;border:1px solid var(--outline);border-radius:calc(8px*var(--rs));background:transparent;color:var(--on-surface);font-size:calc(16px*var(--ts));line-height:calc(24px*var(--ts));outline:none;overflow-wrap:anywhere;cursor:text}
+.rte:not(.multi){white-space:nowrap;overflow:hidden;min-height:56px;height:56px}
+.rte.multi{min-height:96px;max-height:220px;overflow:auto;white-space:pre-wrap;font-size:calc(14px*var(--ts));line-height:calc(20px*var(--ts))}
+.rte:focus{border:2px solid var(--primary);padding:15px}
+.rte code{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:.92em;padding:1px 6px;border-radius:6px;background:color-mix(in srgb,var(--on-surface) 12%,transparent)}
+.rte a{color:var(--primary);text-decoration:underline;text-underline-offset:2px}
+.rte s,.rte strike{opacity:.8}
+.field.rich label{top:28px}
+.field.rich.area label{top:0;font-size:calc(12px*var(--ts))}
+.field.rich:focus-within label,.field.rich:not(.empty) label{top:0;font-size:calc(12px*var(--ts))}
+.field.rich:focus-within label{color:var(--primary)}
+.selbar{position:fixed;z-index:30;display:flex;align-items:center;gap:2px;padding:4px;border-radius:calc(16px*var(--rs));background:var(--glass-hi);border:1px solid var(--glass-edge);box-shadow:0 8px 28px rgba(0,0,0,.28);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);color:var(--on-surface)}
+.selbar[hidden]{display:none}
 .fmtbtn{height:36px;min-width:36px;padding:0 8px;border-radius:calc(12px*var(--rs));display:inline-flex;align-items:center;justify-content:center;gap:6px;color:var(--on-surface);font-size:calc(14px*var(--ts));font-weight:600}
 .fmtbtn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
-.fmtbtn[data-fmt="bold"] svg{fill:none;stroke-width:2.6}
+.fmtbtn:hover{background:color-mix(in srgb,var(--primary) 14%,transparent)}
+.fmtbtn.on{background:var(--primary-container);color:var(--on-primary-container)}
 .fmtsep{width:1px;height:22px;background:var(--glass-edge);margin:0 4px}
-.notepreview{padding:10px 14px;border-radius:calc(16px*var(--rs));background:color-mix(in srgb,var(--on-surface) 5%,transparent);font-size:calc(14px*var(--ts));line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere;max-height:160px;overflow:auto}
-.notepreview code{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:.92em;padding:1px 6px;border-radius:6px;background:color-mix(in srgb,var(--on-surface) 12%,transparent)}
-.notepreview a{color:var(--primary);text-decoration:underline;text-underline-offset:2px}
-.notepreview s{opacity:.75}
+.linkform{display:flex;align-items:center;gap:4px}
+.linkform[hidden]{display:none}
+.linkform input{width:220px;max-width:60vw;height:36px;padding:0 10px;border:1px solid var(--outline);border-radius:calc(10px*var(--rs));background:transparent;color:var(--on-surface);font-size:calc(14px*var(--ts))}
+.linkform input:focus{outline:none;border:2px solid var(--primary);padding:0 9px}
 @media (max-width:899px){.sidenav,.sidesep{display:none!important}}
 /* Phones: the earlier look, two tiles per row with their own height */
 @media (max-width:899px){
@@ -683,19 +697,10 @@ body::before{
   </div>
   <div class="group">
     <h2>Details</h2>
-    <div class="fmtbar" id="fmtBar" role="toolbar" aria-label="Format notes">
-      <button class="fmtbtn state" type="button" data-fmt="bold" title="Bold (Ctrl+B)" aria-label="Bold"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h6a3.5 3.5 0 0 1 0 7H7zM7 12h7a3.5 3.5 0 0 1 0 7H7z"/></svg></button>
-      <button class="fmtbtn state" type="button" data-fmt="italic" title="Italic (Ctrl+I)" aria-label="Italic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 5h8M6 19h8M14 5l-4 14"/></svg></button>
-      <button class="fmtbtn state" type="button" data-fmt="strike" title="Strikethrough" aria-label="Strikethrough"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M16.5 7.5C16 6 14.3 5 12 5 9.6 5 8 6.1 8 7.8c0 1.2.8 2 2.4 2.6M7.5 16.5C8 18 9.7 19 12 19c2.5 0 4.2-1.2 4.2-3 0-.8-.3-1.4-.9-1.9"/></svg></button>
-      <button class="fmtbtn state" type="button" data-fmt="code" title="Code" aria-label="Code"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 7 4 12l4.5 5M15.5 7 20 12l-4.5 5"/></svg></button>
-      <span class="fmtsep" aria-hidden="true"></span>
-      <button class="fmtbtn wide state" type="button" data-fmt="link" title="Link (Ctrl+K)" aria-label="Link"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3A4 4 0 0 0 11 18.7l1-1"/></svg><span>Link</span></button>
-    </div>
     <div class="field area">
       <textarea id="noteInput" maxlength="500" placeholder=" " rows="3"></textarea>
       <label for="noteInput">Notes</label>
     </div>
-    <div class="notepreview" id="notePreview" hidden></div>
     <div class="field always">
       <input id="examInput" type="date">
       <label for="examInput">Exam date</label>
@@ -1560,7 +1565,6 @@ body::before{
     activeId = id;
     renameInput.value = s.name;
     noteInput.value = s.note || "";
-    if (typeof updateNotePreview === "function") updateNotePreview();
     examInput.value = s.exam || "";
     buildSwatches(s);
     disarmDelete();
@@ -1987,7 +1991,7 @@ body::before{
 
   /* ---------- settings screen ---------- */
   var settingsDlg = $("settings");
-  var APP_VERSION = "1.14.0";
+  var APP_VERSION = "1.15.0";
   function radioBtn(cls, label, checked, onPick, extra){
     var b = el("button", cls + " state");
     b.type = "button";
@@ -2142,66 +2146,207 @@ body::before{
   function plainNote(t){
     return String(t).replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, "$1").replace(/\*\*|~~|`/g, "").replace(/\*([^*]+)\*/g, "$1");
   }
-  var notePreview = $("notePreview");
-  function updateNotePreview(){
-    var v = noteInput.value;
-    notePreview.textContent = "";
-    var has = /(\*\*|~~|`|\*[^*]+\*|\]\(https?:)/.test(v);
-    notePreview.hidden = !(v.trim() && has);
-    if (!notePreview.hidden) renderInline(v, notePreview);
-  }
-  function wrapNote(kind, target, limit){
-    var ta = target || noteInput, a = ta.selectionStart, b = ta.selectionEnd, v = ta.value, sel = v.slice(a, b);
-    var pre = {bold: "**", italic: "*", strike: "~~", code: "`"}[kind], ins, ca, cb;
-    if (kind === "link"){
-      var isUrl = /^https?:\/\//.test(sel);
-      var text = isUrl ? "link" : (sel || "link");
-      var url = isUrl ? sel : "https://";
-      ins = "[" + text + "](" + url + ")";
-      if (isUrl){ ca = a + 1; cb = a + 1 + text.length; }
-      else { ca = a + 1 + text.length + 2; cb = ca + url.length; }
-    } else {
-      var inner = sel || "text";
-      ins = pre + inner + pre; ca = a + pre.length; cb = ca + inner.length;
-    }
-    var max = limit || 500;
-    if (v.length - (b - a) + ins.length > max){ toast("Limited to " + max + " characters"); return; }
-    ta.focus();
-    ta.value = v.slice(0, a) + ins + v.slice(b);
-    ta.setSelectionRange(ca, cb);
-    ta.dispatchEvent(new Event("input", { bubbles: true }));
-    if (ta === noteInput){ updateNotePreview(); saveSheetFields(); }
-  }
-  $("fmtBar").addEventListener("mousedown", function(e){ e.preventDefault(); });
-  $("fmtBar").querySelectorAll("[data-fmt]").forEach(function(btn){
-    btn.addEventListener("click", function(){ wrapNote(btn.getAttribute("data-fmt")); });
-  });
-  noteInput.addEventListener("input", updateNotePreview);
-  noteInput.addEventListener("keydown", function(e){
-    if (!(e.ctrlKey || e.metaKey) || e.altKey || e.shiftKey) return;
-    var k = e.key.toLowerCase(), kind = k === "b" ? "bold" : k === "i" ? "italic" : k === "k" ? "link" : "";
-    if (kind){ e.preventDefault(); e.stopPropagation(); wrapNote(kind); }
-  });
 
-  /* formatting bars for the subject name (no links in names) */
-  function addNameBar(input){
-    var field = input.closest(".field"); if (!field) return;
-    var bar = $("fmtBar").cloneNode(true);
-    bar.removeAttribute("id"); bar.classList.add("namebar");
-    var lk = bar.querySelector('[data-fmt="link"]'); if (lk) lk.remove();
-    var sep = bar.querySelector(".fmtsep"); if (sep) sep.remove();
-    bar.addEventListener("mousedown", function(e){ e.preventDefault(); });
-    bar.querySelectorAll("[data-fmt]").forEach(function(btn){
-      btn.addEventListener("click", function(){ wrapNote(btn.getAttribute("data-fmt"), input, 80); });
-    });
-    input.addEventListener("keydown", function(e){
-      if (!(e.ctrlKey || e.metaKey) || e.altKey || e.shiftKey) return;
-      var k = e.key.toLowerCase(), kind = k === "b" ? "bold" : k === "i" ? "italic" : "";
-      if (kind){ e.preventDefault(); e.stopPropagation(); wrapNote(kind, input, 80); }
-    });
-    field.parentNode.insertBefore(bar, field);
+  /* ---------- rich text fields: what you format shows at once; stored as **bold** *italic* ~~strike~~ `code` [text](https://link) ---------- */
+  function serializeRich(root){
+    function walk(n){
+      var out = "";
+      n.childNodes.forEach(function(c){
+        if (c.nodeType === 3){ out += c.nodeValue.replace(/ /g, " "); return; }
+        if (c.nodeType !== 1) return;
+        var t = c.nodeName, inner = walk(c);
+        if (t === "BR") out += "\n";
+        else if (t === "STRONG" || t === "B") out += inner ? "**" + inner + "**" : "";
+        else if (t === "EM" || t === "I") out += inner ? "*" + inner + "*" : "";
+        else if (t === "S" || t === "STRIKE" || t === "DEL") out += inner ? "~~" + inner + "~~" : "";
+        else if (t === "CODE") out += inner ? "`" + inner + "`" : "";
+        else if (t === "A"){ var h = c.getAttribute("href") || ""; out += /^https?:\/\//.test(h) ? "[" + inner + "](" + h + ")" : inner; }
+        else if (t === "DIV" || t === "P"){ out += (out && !/\n$/.test(out) ? "\n" : "") + inner; }
+        else out += inner;
+      });
+      return out;
+    }
+    return walk(root).replace(/\n$/, "");
   }
-  addNameBar(renameInput); addNameBar(newName);
+  var richList = [];
+  function makeRich(source, opts){
+    var field = source.closest(".field");
+    var ed = document.createElement("div");
+    ed.className = "rte" + (opts.multiline ? " multi" : "");
+    ed.contentEditable = "true";
+    ed.setAttribute("role", "textbox");
+    if (opts.multiline) ed.setAttribute("aria-multiline", "true");
+    var lbl = field.querySelector("label");
+    if (lbl){ lbl.id = lbl.id || (source.id + "Lbl"); ed.setAttribute("aria-labelledby", lbl.id); }
+    field.classList.add("rich");
+    source.tabIndex = -1; source.setAttribute("aria-hidden", "true");
+    field.insertBefore(ed, source);
+    var fromEditor = false;
+    function refreshEmpty(){ field.classList.toggle("empty", !ed.textContent && !ed.querySelector("br")); }
+    function load(v){
+      ed.textContent = "";
+      renderInline(String(v || ""), ed, !opts.links);
+      refreshEmpty();
+    }
+    var desc = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(source), "value");
+    Object.defineProperty(source, "value", {
+      get: function(){ return desc.get.call(source); },
+      set: function(v){ desc.set.call(source, v); if (!fromEditor) load(v); }
+    });
+    source.focus = function(){
+      ed.focus();
+      var r = document.createRange(); r.selectNodeContents(ed); r.collapse(false);
+      var sel = getSelection(); sel.removeAllRanges(); sel.addRange(r);
+    };
+    function push(){
+      var md = serializeRich(ed);
+      if (md.length > opts.max){ document.execCommand("undo"); toast("Limited to " + opts.max + " characters"); return; }
+      fromEditor = true; source.value = md; fromEditor = false;
+      refreshEmpty();
+      source.dispatchEvent(new Event("input", { bubbles: true }));
+      if (opts.live){ clearTimeout(ed._t); ed._t = setTimeout(opts.live, 250); }
+    }
+    ed.addEventListener("input", push);
+    ed.addEventListener("blur", function(){
+      clearTimeout(ed._t);
+      source.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+    ed.addEventListener("paste", function(e){
+      e.preventDefault();
+      var t = (e.clipboardData || window.clipboardData).getData("text/plain");
+      if (!opts.multiline) t = t.replace(/\s*\n\s*/g, " ");
+      document.execCommand("insertText", false, t);
+    });
+    ed.addEventListener("keydown", function(e){
+      if (e.key === "Enter" && !e.shiftKey){
+        e.preventDefault();
+        if (opts.multiline) document.execCommand("insertLineBreak");
+        else source.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true }));
+        return;
+      }
+      if ((e.ctrlKey || e.metaKey) && !e.altKey){
+        var k = e.key.toLowerCase();
+        if (k === "b" || k === "i"){ e.stopPropagation(); return; }
+        if (k === "k" && opts.links){ e.preventDefault(); e.stopPropagation(); showSelBar(ed, true); }
+      }
+    });
+    ed._opts = opts;
+    richList.push(ed);
+    load(source.value);
+    return ed;
+  }
+
+  /* floating toolbar that appears when you select text */
+  var selBar = document.createElement("div");
+  selBar.className = "selbar"; selBar.hidden = true; selBar.setAttribute("role", "toolbar"); selBar.setAttribute("aria-label", "Format text");
+  selBar.innerHTML =
+    '<button type="button" class="fmtbtn" data-fmt="bold" title="Bold (Ctrl+B)" aria-label="Bold"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h6a3.5 3.5 0 0 1 0 7H7zM7 12h7a3.5 3.5 0 0 1 0 7H7z"/></svg></button>' +
+    '<button type="button" class="fmtbtn" data-fmt="italic" title="Italic (Ctrl+I)" aria-label="Italic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 5h8M6 19h8M14 5l-4 14"/></svg></button>' +
+    '<button type="button" class="fmtbtn" data-fmt="strike" title="Strikethrough" aria-label="Strikethrough"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M16.5 7.5C16 6 14.3 5 12 5 9.6 5 8 6.1 8 7.8c0 1.2.8 2 2.4 2.6M7.5 16.5C8 18 9.7 19 12 19c2.5 0 4.2-1.2 4.2-3 0-.8-.3-1.4-.9-1.9"/></svg></button>' +
+    '<button type="button" class="fmtbtn" data-fmt="code" title="Code" aria-label="Code"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 7 4 12l4.5 5M15.5 7 20 12l-4.5 5"/></svg></button>' +
+    '<span class="fmtsep" aria-hidden="true"></span>' +
+    '<button type="button" class="fmtbtn wide" data-fmt="link" title="Link (Ctrl+K)" aria-label="Link"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3A4 4 0 0 0 11 18.7l1-1"/></svg><span>Link</span></button>' +
+    '<span class="linkform" hidden><input type="text" inputmode="url" placeholder="https://" aria-label="Link address" autocomplete="off" spellcheck="false"><button type="button" class="fmtbtn" data-fmt="linkok" aria-label="Apply link"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></button></span>';
+  document.body.appendChild(selBar);
+  var selEd = null, selRange = null, linkForm = selBar.querySelector(".linkform"), linkInput = linkForm.querySelector("input");
+  function inRich(node){ var n = node && (node.nodeType === 3 ? node.parentNode : node); return n && n.closest ? n.closest(".rte") : null; }
+  function toggleCode(ed){
+    var sel = getSelection(); if (!sel.rangeCount) return;
+    var r = sel.getRangeAt(0), anc = r.commonAncestorContainer; anc = anc.nodeType === 3 ? anc.parentNode : anc;
+    var code = anc.closest && anc.closest("code");
+    if (code && ed.contains(code)){
+      var f = document.createDocumentFragment(); while (code.firstChild) f.appendChild(code.firstChild);
+      var first = f.firstChild, last = f.lastChild; code.replaceWith(f);
+      if (first && last){ var nr = document.createRange(); nr.setStartBefore(first); nr.setEndAfter(last); sel.removeAllRanges(); sel.addRange(nr); }
+    } else {
+      var el = document.createElement("code"); el.appendChild(r.extractContents()); r.insertNode(el);
+      var nr2 = document.createRange(); nr2.selectNodeContents(el); sel.removeAllRanges(); sel.addRange(nr2);
+    }
+    ed.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+  function stateOf(kind){
+    var sel = getSelection(); if (!sel.rangeCount) return false;
+    if (kind === "code"){ var n = sel.anchorNode; n = n && (n.nodeType === 3 ? n.parentNode : n); return !!(n && n.closest && n.closest("code")); }
+    try { return document.queryCommandState({bold: "bold", italic: "italic", strike: "strikeThrough"}[kind]); } catch(e){ return false; }
+  }
+  function placeSelBar(){
+    var sel = getSelection();
+    if (!sel.rangeCount || sel.isCollapsed){ return false; }
+    var r = sel.getRangeAt(0), ed = inRich(r.commonAncestorContainer);
+    if (!ed || ed !== inRich(sel.anchorNode)) return false;
+    selEd = ed;
+    var linkBtn = selBar.querySelector('[data-fmt="link"]'), sep = selBar.querySelector(".fmtsep");
+    var links = !!ed._opts.links; linkBtn.hidden = !links; sep.hidden = !links;
+    selBar.querySelectorAll("[data-fmt]").forEach(function(b){
+      var k = b.getAttribute("data-fmt");
+      if (k === "link" || k === "linkok") return;
+      b.classList.toggle("on", stateOf(k));
+    });
+    selBar.hidden = false;
+    var rect = r.getBoundingClientRect(), bw = selBar.offsetWidth, bh = selBar.offsetHeight;
+    var left = Math.max(8, Math.min(window.innerWidth - bw - 8, rect.left + rect.width / 2 - bw / 2));
+    var top = rect.top - bh - 10; if (top < 8) top = rect.bottom + 10;
+    selBar.style.left = left + "px"; selBar.style.top = top + "px";
+    return true;
+  }
+  function hideSelBar(){ selBar.hidden = true; linkForm.hidden = true; selRange = null; var lb = selBar.querySelector('[data-fmt="link"]'); if (lb && selEd && selEd._opts.links) lb.hidden = false; }
+  function showSelBar(ed, openLink){
+    if (!placeSelBar()) return;
+    if (openLink){ openLinkForm(); }
+  }
+  function openLinkForm(){
+    var sel = getSelection(); if (!sel.rangeCount || sel.isCollapsed) return;
+    selRange = sel.getRangeAt(0).cloneRange();
+    var a = selRange.commonAncestorContainer; a = a.nodeType === 3 ? a.parentNode : a;
+    var existing = a.closest && a.closest("a");
+    linkInput.value = existing ? existing.getAttribute("href") : "";
+    selBar.querySelectorAll("[data-fmt]").forEach(function(b){ if (b.getAttribute("data-fmt") !== "linkok") b.hidden = true; });
+    selBar.querySelector(".fmtsep").hidden = true;
+    linkForm.hidden = false; linkInput.focus();
+  }
+  function closeLinkForm(restore){
+    linkForm.hidden = true;
+    selBar.querySelectorAll("[data-fmt]").forEach(function(b){ b.hidden = false; });
+    if (restore && selEd){ selEd.focus(); var sel = getSelection(); sel.removeAllRanges(); if (selRange) sel.addRange(selRange); }
+  }
+  function applyLink(){
+    var url = linkInput.value.trim();
+    if (url && !/^https?:\/\//i.test(url)) url = "https://" + url;
+    var ok = /^https?:\/\/[^\s]+$/i.test(url);
+    closeLinkForm(true);
+    if (!selEd) return;
+    if (ok) document.execCommand("createLink", false, url);
+    else document.execCommand("unlink");
+    selEd.querySelectorAll("a").forEach(function(a){ a.target = "_blank"; a.rel = "noopener noreferrer"; });
+    selEd.dispatchEvent(new Event("input", { bubbles: true }));
+    hideSelBar();
+  }
+  selBar.addEventListener("mousedown", function(e){ if (e.target !== linkInput) e.preventDefault(); });
+  selBar.addEventListener("click", function(e){
+    var btn = e.target.closest("[data-fmt]"); if (!btn || !selEd) return;
+    var k = btn.getAttribute("data-fmt");
+    if (k === "link"){ openLinkForm(); return; }
+    if (k === "linkok"){ applyLink(); return; }
+    selEd.focus();
+    if (k === "code") toggleCode(selEd);
+    else document.execCommand({bold: "bold", italic: "italic", strike: "strikeThrough"}[k]);
+    placeSelBar();
+  });
+  linkInput.addEventListener("keydown", function(e){
+    if (e.key === "Enter"){ e.preventDefault(); applyLink(); }
+    if (e.key === "Escape"){ e.preventDefault(); e.stopPropagation(); closeLinkForm(true); placeSelBar(); }
+  });
+  document.addEventListener("selectionchange", function(){
+    if (!linkForm.hidden) return;
+    if (!placeSelBar()) hideSelBar();
+  });
+  window.addEventListener("scroll", function(){ if (!selBar.hidden && linkForm.hidden) placeSelBar(); }, true);
+  window.addEventListener("resize", hideSelBar);
+  try { document.execCommand("styleWithCSS", false, false); } catch(e){}
+  makeRich(renameInput, { max: 80, live: function(){ saveSheetFields(); } });
+  makeRich(newName, { max: 80 });
+  makeRich(noteInput, { max: 500, multiline: true, links: true, live: function(){ saveSheetFields(); } });
+
   /* ---------- sidebar shortcuts: same actions as the Settings buttons ---------- */
   (function(){
     var upd = null;
