@@ -672,7 +672,7 @@ body::before{
   <div class="handle"></div>
   <div class="group">
     <div class="field">
-      <input id="renameInput" maxlength="40" placeholder=" " autocomplete="off" spellcheck="false">
+      <input id="renameInput" maxlength="80" placeholder=" " autocomplete="off" spellcheck="false">
       <label for="renameInput">Subject name</label>
     </div>
   </div>
@@ -802,7 +802,7 @@ body::before{
 <div class="dialog" id="dialog" role="dialog" aria-modal="true" aria-labelledby="dialogTitle" hidden>
   <h2 id="dialogTitle">New subject</h2>
   <div class="field">
-    <input id="newName" maxlength="40" placeholder=" " autocomplete="off" spellcheck="false">
+    <input id="newName" maxlength="80" placeholder=" " autocomplete="off" spellcheck="false">
     <label for="newName">Subject name</label>
   </div>
   <div class="actions">
@@ -971,7 +971,7 @@ body::before{
       var id = String(s.id || uid());
       if (seenIds[id]) return;
       seenIds[id] = true;
-      var o = { id: id, name: s.name.slice(0,40), color: BYKEY[s.color] ? s.color : "" };
+      var o = { id: id, name: s.name.slice(0,80), color: BYKEY[s.color] ? s.color : "" };
       if (s.ex && !fromCloud) o.ex = true;
       if (typeof s.note === "string" && s.note.trim()) o.note = s.note.slice(0,500);
       if (typeof s.exam === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s.exam)) o.exam = s.exam;
@@ -1289,7 +1289,7 @@ body::before{
     if (!activeId) return;
     var s = findSubject(activeId); if (!s) return;
     var changed = false;
-    var nm = renameInput.value.trim().slice(0,40);
+    var nm = renameInput.value.trim().slice(0,80);
     if (nm && nm !== s.name){ s.name = nm; delete s.ex; changed = true; }
     var note = noteInput.value.trim().slice(0,500);
     if (note !== (s.note || "")){
@@ -1305,7 +1305,7 @@ body::before{
     if (changed) commit();
   }
   function addSubject(name){
-    name = name.trim().slice(0,40);
+    name = name.trim().slice(0,80);
     if (!name) return;
     state.subjects.push({ id: uid(), name: name, color: "" });
     commit();
@@ -1371,7 +1371,7 @@ body::before{
   function sortList(list){
     var a = list.slice();
     if (prefs.sort === "name"){
-      a.sort(function(x, y){ return x.name.localeCompare(y.name, undefined, { sensitivity: "base" }); });
+      a.sort(function(x, y){ return plainNote(x.name).localeCompare(plainNote(y.name), undefined, { sensitivity: "base" }); });
     } else if (prefs.sort === "exam"){
       a.sort(function(x, y){ var kx = examKey(x), ky = examKey(y); return kx < ky ? -1 : kx > ky ? 1 : 0; });
     } else if (prefs.sort === "stale"){
@@ -1395,10 +1395,10 @@ body::before{
     b.type = "button";
     b.dataset.id = s.id;
     if (c){ b.style.setProperty("--bg", c.bg); b.style.setProperty("--fg", c.fg); }
-    var label = s.name + ", " + (c ? c.n : "no color yet");
+    var label = plainNote(s.name) + ", " + (c ? c.n : "no color yet");
     if (s.exam) label += ", " + examText(s.exam);
     b.setAttribute("aria-label", label + ". Open details.");
-    b.appendChild(el("span", "name", s.name));
+    b.appendChild((function(){ var n = el("span", "name"); renderInline(s.name, n, true); return n; })());
     var bottom = el("span", "bottom");
     var meta = el("span", "meta");
     if (s.exam) meta.appendChild(el("span", null, examText(s.exam)));
@@ -1423,7 +1423,7 @@ body::before{
     var q = query.trim().toLowerCase();
     var list = subs.filter(function(s){
       if (filter && (BYKEY[s.color] ? s.color : "none") !== filter) return false;
-      if (q && (s.name + " " + (s.note || "")).toLowerCase().indexOf(q) < 0) return false;
+      if (q && (plainNote(s.name) + " " + (s.note || "")).toLowerCase().indexOf(q) < 0) return false;
       return true;
     });
     list = sortList(list);
@@ -1500,7 +1500,7 @@ body::before{
       if (n >= 0 && n < bestDays){ bestDays = n; best = s; }
     });
     if (best){
-      nextEl.textContent = "Next exam: " + best.name + " " + (bestDays === 0 ? "today" : bestDays === 1 ? "tomorrow" : "in " + bestDays + " days");
+      nextEl.textContent = "Next exam: " + plainNote(best.name) + " " + (bestDays === 0 ? "today" : bestDays === 1 ? "tomorrow" : "in " + bestDays + " days");
       nextEl.hidden = false;
     } else {
       nextEl.hidden = true;
@@ -1971,7 +1971,7 @@ body::before{
       }
       fresh.forEach(function(s){
         prefs.notified[s.id + suffix] = 1;
-        new window.Notification("Study Colors", { body: s.name + ": " + examText(s.exam) });
+        new window.Notification("Study Colors", { body: plainNote(s.name) + ": " + examText(s.exam) });
       });
       savePrefs();
     } catch(e){}
@@ -1987,7 +1987,7 @@ body::before{
 
   /* ---------- settings screen ---------- */
   var settingsDlg = $("settings");
-  var APP_VERSION = "1.13.1";
+  var APP_VERSION = "1.14.0";
   function radioBtn(cls, label, checked, onPick, extra){
     var b = el("button", cls + " state");
     b.type = "button";
@@ -2122,16 +2122,17 @@ body::before{
 
   /* ---------- note formatting: **bold** *italic* ~~strike~~ `code` [text](https://link) ---------- */
   var INLINE_RE = /\*\*([^*]+)\*\*|~~([^~]+)~~|`([^`]+)`|\*([^*\n]+)\*|\[([^\]\n]+)\]\((https?:\/\/[^\s)]+)\)/g;
-  function renderInline(text, parent){
-    var last = 0, m; INLINE_RE.lastIndex = 0;
-    var re = new RegExp(INLINE_RE.source, "g");
+  function renderInline(text, parent, noLinks){
+    var last = 0, m;
+    var re = new RegExp("\\*\\*([^*]+)\\*\\*|~~([^~]+)~~|`([^`]+)`|\\*([^*\\n]+)\\*|\\[([^\\]\\n]+)\\]\\((https?:\\/\\/[^\\s)]+)\\)", "g");
     while ((m = re.exec(text))){
       if (m.index > last) parent.appendChild(document.createTextNode(text.slice(last, m.index)));
       var node;
-      if (m[1] !== undefined){ node = document.createElement("strong"); renderInline(m[1], node); }
-      else if (m[2] !== undefined){ node = document.createElement("s"); renderInline(m[2], node); }
+      if (m[1] !== undefined){ node = document.createElement("strong"); renderInline(m[1], node, noLinks); }
+      else if (m[2] !== undefined){ node = document.createElement("s"); renderInline(m[2], node, noLinks); }
       else if (m[3] !== undefined){ node = document.createElement("code"); node.textContent = m[3]; }
-      else if (m[4] !== undefined){ node = document.createElement("em"); renderInline(m[4], node); }
+      else if (m[4] !== undefined){ node = document.createElement("em"); renderInline(m[4], node, noLinks); }
+      else if (noLinks){ node = document.createElement("span"); renderInline(m[5], node, noLinks); }
       else { node = document.createElement("a"); node.href = m[6]; node.target = "_blank"; node.rel = "noopener noreferrer"; renderInline(m[5], node); }
       parent.appendChild(node);
       last = m.index + m[0].length;
@@ -2149,8 +2150,8 @@ body::before{
     notePreview.hidden = !(v.trim() && has);
     if (!notePreview.hidden) renderInline(v, notePreview);
   }
-  function wrapNote(kind){
-    var ta = noteInput, a = ta.selectionStart, b = ta.selectionEnd, v = ta.value, sel = v.slice(a, b);
+  function wrapNote(kind, target, limit){
+    var ta = target || noteInput, a = ta.selectionStart, b = ta.selectionEnd, v = ta.value, sel = v.slice(a, b);
     var pre = {bold: "**", italic: "*", strike: "~~", code: "`"}[kind], ins, ca, cb;
     if (kind === "link"){
       var isUrl = /^https?:\/\//.test(sel);
@@ -2163,11 +2164,13 @@ body::before{
       var inner = sel || "text";
       ins = pre + inner + pre; ca = a + pre.length; cb = ca + inner.length;
     }
-    if (v.length - (b - a) + ins.length > 500){ toast("Notes are limited to 500 characters"); return; }
+    var max = limit || 500;
+    if (v.length - (b - a) + ins.length > max){ toast("Limited to " + max + " characters"); return; }
     ta.focus();
     ta.value = v.slice(0, a) + ins + v.slice(b);
     ta.setSelectionRange(ca, cb);
-    updateNotePreview(); saveSheetFields();
+    ta.dispatchEvent(new Event("input", { bubbles: true }));
+    if (ta === noteInput){ updateNotePreview(); saveSheetFields(); }
   }
   $("fmtBar").addEventListener("mousedown", function(e){ e.preventDefault(); });
   $("fmtBar").querySelectorAll("[data-fmt]").forEach(function(btn){
@@ -2179,6 +2182,26 @@ body::before{
     var k = e.key.toLowerCase(), kind = k === "b" ? "bold" : k === "i" ? "italic" : k === "k" ? "link" : "";
     if (kind){ e.preventDefault(); e.stopPropagation(); wrapNote(kind); }
   });
+
+  /* formatting bars for the subject name (no links in names) */
+  function addNameBar(input){
+    var field = input.closest(".field"); if (!field) return;
+    var bar = $("fmtBar").cloneNode(true);
+    bar.removeAttribute("id"); bar.classList.add("namebar");
+    var lk = bar.querySelector('[data-fmt="link"]'); if (lk) lk.remove();
+    var sep = bar.querySelector(".fmtsep"); if (sep) sep.remove();
+    bar.addEventListener("mousedown", function(e){ e.preventDefault(); });
+    bar.querySelectorAll("[data-fmt]").forEach(function(btn){
+      btn.addEventListener("click", function(){ wrapNote(btn.getAttribute("data-fmt"), input, 80); });
+    });
+    input.addEventListener("keydown", function(e){
+      if (!(e.ctrlKey || e.metaKey) || e.altKey || e.shiftKey) return;
+      var k = e.key.toLowerCase(), kind = k === "b" ? "bold" : k === "i" ? "italic" : "";
+      if (kind){ e.preventDefault(); e.stopPropagation(); wrapNote(kind, input, 80); }
+    });
+    field.parentNode.insertBefore(bar, field);
+  }
+  addNameBar(renameInput); addNameBar(newName);
   /* ---------- sidebar shortcuts: same actions as the Settings buttons ---------- */
   (function(){
     var upd = null;

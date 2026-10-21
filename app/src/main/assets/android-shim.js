@@ -108,7 +108,7 @@
     widgetTimer = setTimeout(function () {
       try {
         var d = JSON.parse(raw);
-        var out = (d.subjects || []).map(function (s) { return [String(s.name || "").slice(0, 40), s.color || ""]; });
+        var out = (d.subjects || []).map(function (s) { return [String(s.name || "").replace(/\*\*|~~|`/g, "").replace(/\*([^*]+)\*/g, "$1").slice(0, 80), s.color || ""]; });
         B.setWidgetData(JSON.stringify(out));
       } catch (e) {}
     }, 400);
