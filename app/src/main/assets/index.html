@@ -452,7 +452,7 @@ body::before{
 }
 .tile.empty{background:var(--glass);border:1.5px dashed color-mix(in srgb,var(--outline) 70%,transparent);box-shadow:var(--glass-shadow);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur)}
 @media (hover:hover){.tile:hover{transform:translateY(-3px)}}
-.tile .name{font-weight:600;letter-spacing:-.01em}
+.tile .name{font-weight:500;letter-spacing:-.01em}
 
 .sheet,.dialog{background:var(--glass-hi);border:1px solid var(--glass-edge);box-shadow:0 20px 60px rgba(0,0,0,.28)}
 .sheet{border-radius:calc(36px*var(--rs)) calc(36px*var(--rs)) 0 0;border-bottom:0}
@@ -607,6 +607,11 @@ body::before{
 .linkform[hidden]{display:none}
 .linkform input{width:220px;max-width:60vw;height:36px;padding:0 10px;border:1px solid var(--outline);border-radius:calc(10px*var(--rs));background:transparent;color:var(--on-surface);font-size:calc(14px*var(--ts))}
 .linkform input:focus{outline:none;border:2px solid var(--primary);padding:0 9px}
+/* Bold and italic must show even in fonts that only ship one weight/style */
+.rte b,.rte strong,.rte i,.rte em,.tile .name b,.tile .name strong,.tile .name i,.tile .name em,.tile .meta b,.tile .meta strong,.tile .meta i,.tile .meta em{font-synthesis:weight style}
+.rte b,.rte strong,.tile .name b,.tile .name strong,.tile .meta b,.tile .meta strong{font-weight:800}
+.rte i,.rte em,.tile .name i,.tile .name em,.tile .meta i,.tile .meta em{font-style:italic}
+.rte s,.rte strike,.tile s{text-decoration:line-through}
 @media (max-width:899px){.sidenav,.sidesep{display:none!important}}
 /* Phones: the earlier look, two tiles per row with their own height */
 @media (max-width:899px){
@@ -1991,7 +1996,7 @@ body::before{
 
   /* ---------- settings screen ---------- */
   var settingsDlg = $("settings");
-  var APP_VERSION = "1.15.0";
+  var APP_VERSION = "1.15.1";
   function radioBtn(cls, label, checked, onPick, extra){
     var b = el("button", cls + " state");
     b.type = "button";
