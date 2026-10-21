@@ -1487,14 +1487,18 @@ body::before{
   /* ---------- overview bar: a wavy, moving "worm" per color ---------- */
   var SVGNS = "http://www.w3.org/2000/svg";
   var waveSegs = [], waveEls = [], waveStart = 0, waveW = 0;
-  var WAVE_H = 28, WAVE_AMP = 4.2, WAVE_LEN = 30, WAVE_GAP = 10, WAVE_CAP = 4;
+  var WAVE_H = 28, WAVE_AMP = 4.4, WAVE_LEN = 34, WAVE_GAP = 10, WAVE_CAP = 4;
   function motionOK(){
     return prefs.motion !== "reduced" && !(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   }
   function wavePath(x0, x1, phase){
-    var d = "", mid = WAVE_H / 2, k = 2 * Math.PI / WAVE_LEN;
-    for (var x = x0; x <= x1 + 0.01; x += 3){
-      var y = mid + WAVE_AMP * Math.sin((x - x0) * k - phase);
+    // Smooth travelling wave: tapers to a straight line at both ends so each worm starts and ends softly,
+    // and the wave is tied to the absolute x position so it flows continuously.
+    var d = "", mid = WAVE_H / 2, k = 2 * Math.PI / WAVE_LEN, len = x1 - x0, ramp = Math.min(16, len / 2);
+    for (var x = x0; x <= x1 + 0.01; x += 2){
+      var e = Math.min(x - x0, x1 - x) / ramp; if (e > 1) e = 1; if (e < 0) e = 0;
+      e = e * e * (3 - 2 * e);
+      var y = mid + WAVE_AMP * e * Math.sin(x * k - phase);
       d += (d ? "L" : "M") + x.toFixed(1) + " " + y.toFixed(2);
     }
     return d;
@@ -1529,25 +1533,25 @@ body::before{
         dot.setAttribute("cx", x1); dot.setAttribute("cy", WAVE_H / 2); dot.setAttribute("r", "3"); dot.setAttribute("fill", "currentColor"); dot.setAttribute("fill-opacity", ".6");
         svg.appendChild(dot);
       } else {
-        path.setAttribute("stroke", sg.color); path.setAttribute("stroke-width", "7.5");
+        path.setAttribute("stroke", sg.color); path.setAttribute("stroke-width", "8");
         path.setAttribute("d", wavePath(x0, x1, 0));
         svg.appendChild(path);
-        waveEls.push({ el: path, x0: x0, x1: x1, off: i * 0.9 });
+        waveEls.push({ el: path, x0: x0, x1: x1 });
       }
       x = x1 + WAVE_GAP + WAVE_CAP * 2;
     });
     bar.appendChild(svg);
     if (motionOK() && waveEls.length) startWave(); else stopWave();
   }
-  var waveTimer = 0;
-  function tickWave(){
-    var now = performance.now();
+  var waveFrame = 0;
+  function tickWave(now){
     if (!waveStart) waveStart = now;
-    var phase = (now - waveStart) / 1000 * 2.6;
-    waveEls.forEach(function(w){ w.el.setAttribute("d", wavePath(w.x0, w.x1, phase + w.off)); });
+    var phase = (now - waveStart) / 1000 * 3.2;
+    waveEls.forEach(function(w){ w.el.setAttribute("d", wavePath(w.x0, w.x1, phase)); });
+    waveFrame = requestAnimationFrame(tickWave);
   }
-  function startWave(){ stopWave(); waveTimer = setInterval(tickWave, 33); }
-  function stopWave(){ if (waveTimer) clearInterval(waveTimer); waveTimer = 0; waveStart = 0; }
+  function startWave(){ stopWave(); waveFrame = requestAnimationFrame(tickWave); }
+  function stopWave(){ if (waveFrame) cancelAnimationFrame(waveFrame); waveFrame = 0; waveStart = 0; }
   if (window.ResizeObserver){ new ResizeObserver(function(){ if (bar.clientWidth !== waveW) layoutWave(); }).observe(bar); }
   document.addEventListener("visibilitychange", function(){ if (document.hidden) stopWave(); else if (motionOK() && waveEls.length) startWave(); });
 
@@ -2067,7 +2071,7 @@ body::before{
 
   /* ---------- settings screen ---------- */
   var settingsDlg = $("settings");
-  var APP_VERSION = "1.16.0";
+  var APP_VERSION = "1.16.2";
   function radioBtn(cls, label, checked, onPick, extra){
     var b = el("button", cls + " state");
     b.type = "button";
