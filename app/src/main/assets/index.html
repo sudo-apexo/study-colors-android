@@ -658,6 +658,12 @@ body::before{
 @keyframes ufxDraw{from{stroke-dashoffset:24}to{stroke-dashoffset:0}}
 @keyframes ufxPop{0%{transform:scale(.7)}100%{transform:scale(1)}}
 .updfx .ufx-blob{will-change:transform,border-radius}
+.updfx.err .ufx-blob{background:var(--error);animation:ufxPop .5s cubic-bezier(.2,1.4,.4,1) both;border-radius:50%}
+.updfx.err .ufx-fill{background:var(--error);width:100%;animation:none}
+.updfx.err .ufx-arrow,.updfx.err .ufx-check{display:none}
+.updfx .ufx-bang{display:none}
+.updfx.err .ufx-bang{display:block;stroke:var(--on-error)}
+.updfx.err .ufx-sub{white-space:normal}
 [data-motion="reduced"] .updfx .ufx-blob,[data-motion="reduced"] .updfx .ufx-arrow,[data-motion="reduced"] .updfx .ufx-fill{animation:none!important}
 [data-motion="reduced"] .updfx .ufx-fill{width:100%}
 
@@ -2134,7 +2140,7 @@ body::before{
 
   /* ---------- settings screen ---------- */
   var settingsDlg = $("settings");
-  var APP_VERSION = "1.16.6";
+  var APP_VERSION = "1.16.9";
   function radioBtn(cls, label, checked, onPick, extra){
     var b = el("button", cls + " state");
     b.type = "button";
@@ -2865,7 +2871,7 @@ body::before{
     var card = document.createElement("div");
     card.className = "updfx"; card.setAttribute("role","status"); card.setAttribute("aria-live","polite");
     card.innerHTML = '<div class="ufx-shape"><div class="ufx-blob"></div>' +
-      '<svg viewBox="0 0 24 24" aria-hidden="true"><path class="ufx-arrow" d="M12 5v10M7.5 11l4.5 4.5 4.5-4.5M6 19.5h12"/><path class="ufx-check" d="M6 12.5l4 4 8-9"/></svg></div>' +
+      '<svg viewBox="0 0 24 24" aria-hidden="true"><path class="ufx-arrow" d="M12 5v10M7.5 11l4.5 4.5 4.5-4.5M6 19.5h12"/><path class="ufx-check" d="M6 12.5l4 4 8-9"/><path class="ufx-bang" d="M12 6v7M12 17.5v.5"/></svg></div>' +
       '<div class="ufx-text"><span class="ufx-title"></span><div class="ufx-track"><div class="ufx-fill"></div></div><span class="ufx-sub"></span></div>';
     document.body.appendChild(card);
     var title = card.querySelector(".ufx-title"), sub = card.querySelector(".ufx-sub");
@@ -2874,15 +2880,38 @@ body::before{
       var w = u.parentElement, m = w && w.nextElementSibling;
       return m && m.classList.contains("acct-msg") ? m.textContent : "";
     }
-    function hide(){ shown = false; doneAt = 0; card.classList.remove("on","done","det"); }
+    var armed = false, clickAt = 0;   // only animate runs that the person started by pressing the button
+    document.addEventListener("click", function(e){
+      var t = e.target && e.target.closest && e.target.closest("#updBtn,#sideUpdate");
+      if (t){ armed = true; clickAt = Date.now(); }
+    }, true);
+    function hide(){ armed = false; shown = false; doneAt = 0; card.classList.remove("on","done","det","err"); }
+    function flash(kind, t, m, ms){
+      clearTimeout(hideTimer); shown = true; minUntil = 0; doneAt = Date.now() + 1e9;
+      card.classList.remove("det","done","err"); card.classList.add("on", kind);
+      title.textContent = t; sub.textContent = m;
+      hideTimer = setTimeout(hide, ms);
+    }
+    // After the app restarts on its own, say so (otherwise the new window looks like nothing happened).
+    try {
+      var want = localStorage.getItem("sc_updating");
+      if (want){
+        localStorage.removeItem("sc_updating");
+        setTimeout(function(){
+          var a = document.getElementById("aboutLine"), cur = a && /Study Colors (\d+\.\d+\.\d+)/.exec(a.textContent);
+          if (cur && cur[1] === want) flash("done", "Updated to " + want, "Study Colors restarted on the newest version.", 4500);
+        }, 900);
+      }
+    } catch(e){}
     function tick(){
       var u = document.getElementById("updBtn"); if (!u) return;
       var label = u.textContent.trim(), msg = msgOf(u);
-      var busy = u.disabled && /check|download|updat/i.test(label);
+      var busy = armed && u.disabled && /check|download|updat/i.test(label);
       if (busy){
         clearTimeout(hideTimer); doneAt = 0;
         if (!shown){ shown = true; minUntil = Date.now() + 1600; card.classList.remove("done"); }
         card.classList.add("on");
+        if (/updat/i.test(label)){ var vm = /downloading version (\d+\.\d+\.\d+)/i.exec(msg); if (vm) try { localStorage.setItem("sc_updating", vm[1]); } catch(e){} }
         title.textContent = label.replace(/\u2026|\.\.\./g,"");
         sub.textContent = msg || "Please wait";
         var pm = /(\d{1,3})\s*%/.exec(msg);
@@ -2890,12 +2919,15 @@ body::before{
         else card.classList.remove("det");
         return;
       }
-      if (!shown) return;
+      if (!shown){ if (!u.disabled) armed = armed && Date.now() - clickAt < 4000; return; }
       if (Date.now() < minUntil) return;
       if (!doneAt){
         if (/newest|latest|up to date/i.test(msg)){
           doneAt = Date.now(); card.classList.add("done"); card.classList.remove("det");
           title.textContent = "You're up to date"; sub.textContent = msg;
+        } else if (/could not|failed|reinstall|try again/i.test(msg)){
+          try { localStorage.removeItem("sc_updating"); } catch(e){}
+          flash("err", "Update problem", msg.replace(/^Version [\d.]+\.\s*/,""), 6000);
         } else { hide(); }
         return;
       }
