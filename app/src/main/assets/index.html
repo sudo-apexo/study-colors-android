@@ -356,6 +356,11 @@ kbd{font:inherit;font-size:calc(12px*var(--ts));padding:2px 8px;border:1px solid
 
 /* Phones: Material 3 small top app bar, full-screen settings page, modal bottom sheets */
 .sync-ic{display:none;width:24px;height:24px;fill:currentColor}
+.sync-av{display:none;width:26px;height:26px;border-radius:50%;object-fit:cover;flex:none;margin-right:8px;background:var(--sc-high)}
+.sync.has-av .sync-av{display:block}
+.sync.has-av .sync-ic{display:none!important}
+@media (max-width:899px){.sync-av{width:34px;height:34px;margin:0}}
+:root[data-nav="side"] .sync-av{width:28px;height:28px;margin-right:0}
 .set-top{display:flex;align-items:center;gap:8px}
 .set-top .iconbtn{display:none}
 @media (max-width:600px){
@@ -700,7 +705,7 @@ body::before{
   <div class="gutter">
     <svg class="logo" width="32" height="32" aria-hidden="true" viewBox="0 0 108 108"><rect width="108" height="108" rx="26" fill="#2E6B3A"/><g transform="translate(54 54) scale(1.12) translate(-56 -54)"><path d="M37 26h25A8 8 0 0 1 70 34v40A8 8 0 0 1 62 82h-25A8 8 0 0 1 29 74v-40A8 8 0 0 1 37 26Z" fill="#F8FAF4"/><path d="M39 26H37A8 8 0 0 0 29 34V74A8 8 0 0 0 37 82H39Z" fill="#B3F1B8"/><path d="M77 30h2A4 4 0 0 1 83 34v3A4 4 0 0 1 79 41h-2A4 4 0 0 1 73 37v-3A4 4 0 0 1 77 30Z" fill="#E53935"/><path d="M77 43.5h2A4 4 0 0 1 83 47.5v3A4 4 0 0 1 79 54.5h-2A4 4 0 0 1 73 50.5v-3A4 4 0 0 1 77 43.5Z" fill="#FFB300"/><path d="M77 57h2A4 4 0 0 1 83 61v3A4 4 0 0 1 79 68h-2A4 4 0 0 1 73 64v-3A4 4 0 0 1 77 57Z" fill="#43A047"/><path d="M77 70.5h2A4 4 0 0 1 83 74.5v3A4 4 0 0 1 79 81.5h-2A4 4 0 0 1 73 77.5v-3A4 4 0 0 1 77 70.5Z" fill="#1E88E5"/><circle cx="55.5" cy="55" r="9" fill="#2E6B3A"/><path d="M51 55.5l3.2 3.2 6-6.4" fill="none" stroke="#fff" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></g></svg>
     <h1>Study Colors</h1>
-    <button class="sync state" id="sync" type="button" data-mode="local" title="Where your subjects are saved"><svg class="sync-ic" viewBox="0 -960 960 960" aria-hidden="true"><path d="M234-276q51-39 114-61.5T480-360q69 0 132 22.5T726-276q35-41 54.5-93T800-480q0-133-93.5-226.5T480-800q-133 0-226.5 93.5T160-480q0 59 19.5 111t54.5 93Zm246-164q-59 0-99.5-40.5T340-580q0-59 40.5-99.5T480-720q59 0 99.5 40.5T620-580q0 59-40.5 99.5T480-440Zm0 360q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q53 0 100-15.5t86-44.5q-39-29-86-44.5T480-280q-53 0-100 15.5T294-220q39 29 86 44.5T480-160Zm0-360q26 0 43-17t17-43q0-26-17-43t-43-17q-26 0-43 17t-17 43q0 26 17 43t43 17Zm0-60Zm0 360Z"/></svg><span id="syncTxt">This device</span></button>
+    <button class="sync state" id="sync" type="button" data-mode="local" title="Where your subjects are saved"><svg class="sync-ic" viewBox="0 -960 960 960" aria-hidden="true"><path d="M234-276q51-39 114-61.5T480-360q69 0 132 22.5T726-276q35-41 54.5-93T800-480q0-133-93.5-226.5T480-800q-133 0-226.5 93.5T160-480q0 59 19.5 111t54.5 93Zm246-164q-59 0-99.5-40.5T340-580q0-59 40.5-99.5T480-720q59 0 99.5 40.5T620-580q0 59-40.5 99.5T480-440Zm0 360q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q53 0 100-15.5t86-44.5q-39-29-86-44.5T480-280q-53 0-100 15.5T294-220q39 29 86 44.5T480-160Zm0-360q26 0 43-17t17-43q0-26-17-43t-43-17q-26 0-43 17t-17 43q0 26 17 43t43 17Zm0-60Zm0 360Z"/></svg><img class="sync-av" id="syncAv" alt="" referrerpolicy="no-referrer" draggable="false"><span id="syncTxt">This device</span></button>
     <button class="iconbtn state" id="themeBtn" type="button" aria-label="Change theme" title="Theme"></button>
     <button class="iconbtn state" id="settingsBtn" type="button" aria-label="Settings" title="Settings (,)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg></button>
     <span class="sidesep" aria-hidden="true"></span>
@@ -1184,6 +1189,9 @@ body::before{
     sync.detail = detail || "";
     syncEl.dataset.mode = mode;
     $("syncTxt").textContent = SYNC_LABELS[mode] || "";
+    var av = $("syncAv"), photo = sync.user && sync.user.photo || "";
+    if (photo){ if (av.getAttribute("src") !== photo) av.src = photo; av.onerror = function(){ syncEl.classList.remove("has-av"); }; syncEl.classList.add("has-av"); }
+    else { syncEl.classList.remove("has-av"); av.removeAttribute("src"); }
     if (typeof render === "function" && !state.subjects.length && sync.user) render();
     syncEl.title = SYNC_TITLES[mode] || "";
     syncEl.setAttribute("aria-label", (SYNC_TITLES[mode] || "Account"));
@@ -1603,7 +1611,7 @@ body::before{
       path.setAttribute("fill", "none"); path.setAttribute("stroke-linejoin", "round");
       path.setAttribute("stroke-linecap", "butt");
       var t = document.createElementNS(SVGNS, "title"); t.textContent = sg.title; path.appendChild(t);
-      var sw = sg.none ? 3.2 : 8;
+      var sw = 8;
       if (sg.none){ path.setAttribute("stroke", "currentColor"); path.setAttribute("stroke-opacity", ".5"); }
       else path.setAttribute("stroke", sg.color);
       path.setAttribute("stroke-width", sw);
@@ -2152,7 +2160,7 @@ body::before{
 
   /* ---------- settings screen ---------- */
   var settingsDlg = $("settings");
-  var APP_VERSION = "1.16.10";
+  var APP_VERSION = "1.16.11";
   function radioBtn(cls, label, checked, onPick, extra){
     var b = el("button", cls + " state");
     b.type = "button";
@@ -2435,6 +2443,8 @@ body::before{
     if (!sel.rangeCount || sel.isCollapsed){ return false; }
     var r = sel.getRangeAt(0), ed = inRich(r.commonAncestorContainer);
     if (!ed || ed !== inRich(sel.anchorNode)) return false;
+    var ae = document.activeElement;
+    if (!(ae && (ae === ed || ed.contains(ae) || selBar.contains(ae)))) return false;
     selEd = ed;
     var linkBtn = selBar.querySelector('[data-fmt="link"]'), sep = selBar.querySelector(".fmtsep");
     var links = !!ed._opts.links; linkBtn.hidden = !links; sep.hidden = !links;
@@ -2503,10 +2513,37 @@ body::before{
   });
   window.addEventListener("scroll", function(){ if (!selBar.hidden && linkForm.hidden) placeSelBar(); }, true);
   window.addEventListener("resize", hideSelBar);
+  document.addEventListener("pointerdown", function(e){
+    if (selBar.hidden) return;
+    if (selBar.contains(e.target) || (e.target.closest && e.target.closest(".rte"))) return;
+    hideSelBar();
+  }, true);
+  document.addEventListener("focusout", function(e){
+    if (selBar.hidden || !(e.target.closest && e.target.closest(".rte"))) return;
+    var to = e.relatedTarget;
+    if (to && (selBar.contains(to) || (to.closest && to.closest(".rte")))) return;
+    setTimeout(function(){ var a = document.activeElement; if (!(a && (selBar.contains(a) || (a.closest && a.closest(".rte"))))) hideSelBar(); }, 0);
+  });
   try { document.execCommand("styleWithCSS", false, false); } catch(e){}
   makeRich(renameInput, { max: 80, live: function(){ saveSheetFields(); } });
   makeRich(newName, { max: 80 });
   makeRich(noteInput, { max: 500, multiline: true, links: true, live: function(){ saveSheetFields(); } });
+
+  /* ---------- logo / title: back to the home view ---------- */
+  function goHome(){
+    if (openNode) closeOverlay();
+    filter = ""; query = ""; searchInput.value = "";
+    render();
+    window.scrollTo({ top: 0, behavior: prefs.motion === "reduced" ? "auto" : "smooth" });
+    document.querySelectorAll(".main,main").forEach(function(m){ if (m.scrollTop) m.scrollTo({ top: 0 }); });
+  }
+  var hb = document.querySelector(".appbar .logo"), ht = document.querySelector(".appbar h1");
+  [hb, ht].forEach(function(n){
+    if (!n) return;
+    n.style.cursor = "pointer";
+    n.addEventListener("click", goHome);
+  });
+  if (ht){ ht.setAttribute("role","link"); ht.tabIndex = 0; ht.addEventListener("keydown", function(e){ if (e.key === "Enter") goHome(); }); }
 
   /* ---------- sidebar shortcuts: same actions as the Settings buttons ---------- */
   (function(){
