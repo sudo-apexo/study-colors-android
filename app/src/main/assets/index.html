@@ -630,6 +630,18 @@ body::before{
   .tile .foot svg{width:20px;height:20px}
 }
 
+
+/* ---- "update available" markers ---- */
+#sideUpdate.has-upd{position:relative}
+.upd-dot{display:none;position:absolute;top:4px;right:4px;width:10px;height:10px;border-radius:50%;background:var(--primary);animation:updPulse 1.8s ease-out infinite;pointer-events:none}
+.dotted>.upd-dot{display:block}
+.iconbtn,.navbtn{position:relative}
+@media (min-width:900px){:root[data-nav="side"] #settingsBtn>.upd-dot{display:none!important}}
+.upd-ico{display:none;position:absolute;left:30px;top:3px;width:18px;height:18px;border-radius:50%;background:var(--primary) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 5v12M6.5 12.5 12 18l5.5-5.5'/%3E%3C/svg%3E") center/12px no-repeat;box-shadow:0 0 0 2px var(--sc-high,#fff);animation:updPulse 1.8s ease-out infinite;pointer-events:none}
+.has-upd .upd-ico{display:block}
+#sideUpdate.has-upd .sl>span:first-child{color:var(--primary);font-weight:600}
+@keyframes updPulse{0%{box-shadow:0 0 0 2px var(--sc-high,#fff),0 0 0 2px color-mix(in srgb,var(--primary) 60%,transparent)}70%,100%{box-shadow:0 0 0 2px var(--sc-high,#fff),0 0 0 10px transparent}}
+[data-motion="reduced"] .upd-dot,[data-motion="reduced"] .upd-ico{animation:none}
 /* ---- update loading card ---- */
 .updfx{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));z-index:200;display:flex;align-items:center;gap:16px;width:min(420px,calc(100vw - 32px));padding:14px 20px 14px 14px;border-radius:calc(28px*var(--rs));background:color-mix(in srgb,var(--sc-highest) 94%,transparent);border:1px solid var(--glass-edge,var(--outline-variant));-webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4);box-shadow:0 12px 40px rgba(0,0,0,.28);color:var(--on-surface);transform:translate(-50%,40px) scale(.9);opacity:0;pointer-events:none;transition:transform .45s cubic-bezier(.2,1.3,.4,1),opacity .25s}
 .updfx.on{transform:translate(-50%,0) scale(1);opacity:1}
@@ -2140,7 +2152,7 @@ body::before{
 
   /* ---------- settings screen ---------- */
   var settingsDlg = $("settings");
-  var APP_VERSION = "1.16.9";
+  var APP_VERSION = "1.16.10";
   function radioBtn(cls, label, checked, onPick, extra){
     var b = el("button", cls + " state");
     b.type = "button";
@@ -2903,8 +2915,18 @@ body::before{
         }, 900);
       }
     } catch(e){}
+    // Mark the update spots when a newer version is waiting.
+    var ico = document.createElement("span"); ico.className = "upd-ico"; ico.setAttribute("aria-hidden","true");
+    var sideU = document.getElementById("sideUpdate"); if (sideU) sideU.appendChild(ico);
+    var dots = ["settingsBtn","navOpen"].map(function(i){ return document.getElementById(i); }).filter(Boolean);
+    dots.forEach(function(d){ var x = document.createElement("span"); x.className = "upd-dot"; x.setAttribute("aria-hidden","true"); d.appendChild(x); });
+    function mark(on){
+      if (sideU) sideU.classList.toggle("has-upd", on);
+      dots.forEach(function(d){ d.classList.toggle("dotted", on); });
+    }
     function tick(){
       var u = document.getElementById("updBtn"); if (!u) return;
+      mark(!u.disabled && /^\s*update now/i.test(u.textContent));
       var label = u.textContent.trim(), msg = msgOf(u);
       var busy = armed && u.disabled && /check|download|updat/i.test(label);
       if (busy){
