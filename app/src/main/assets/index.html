@@ -631,11 +631,11 @@ body::before{
 }
 
 /* ---- update loading card ---- */
-.updfx{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));z-index:200;display:flex;align-items:center;gap:16px;width:min(420px,calc(100vw - 32px));padding:14px 20px 14px 14px;border-radius:calc(28px*var(--rs));background:color-mix(in srgb,var(--surface-container-high,#fff) 90%,transparent);border:1px solid var(--glass-edge,var(--outline-variant));-webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4);box-shadow:0 12px 40px rgba(0,0,0,.28);color:var(--on-surface);transform:translate(-50%,40px) scale(.9);opacity:0;pointer-events:none;transition:transform .45s cubic-bezier(.2,1.3,.4,1),opacity .25s}
+.updfx{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));z-index:200;display:flex;align-items:center;gap:16px;width:min(420px,calc(100vw - 32px));padding:14px 20px 14px 14px;border-radius:calc(28px*var(--rs));background:color-mix(in srgb,var(--sc-highest) 94%,transparent);border:1px solid var(--glass-edge,var(--outline-variant));-webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4);box-shadow:0 12px 40px rgba(0,0,0,.28);color:var(--on-surface);transform:translate(-50%,40px) scale(.9);opacity:0;pointer-events:none;transition:transform .45s cubic-bezier(.2,1.3,.4,1),opacity .25s}
 .updfx.on{transform:translate(-50%,0) scale(1);opacity:1}
 .updfx .ufx-shape{position:relative;flex:0 0 auto;width:52px;height:52px;display:grid;place-items:center}
-.updfx .ufx-blob{position:absolute;inset:0;background:conic-gradient(from 0deg,var(--primary),var(--tertiary,var(--primary)),var(--primary-container),var(--primary));animation:ufxMorph 2.4s cubic-bezier(.45,0,.25,1) infinite,ufxSpin 4.8s linear infinite;transition:background .3s}
-.updfx .ufx-blob::after{content:"";position:absolute;inset:6px;border-radius:inherit;background:var(--surface-container-high,var(--surface));opacity:.0}
+.updfx .ufx-blob{position:absolute;inset:0;background:conic-gradient(from 0deg,var(--primary),var(--primary-container),var(--primary));animation:ufxMorph 2.4s cubic-bezier(.45,0,.25,1) infinite,ufxSpin 4.8s linear infinite;transition:background .3s}
+.updfx .ufx-blob::after{content:"";position:absolute;inset:6px;border-radius:inherit;background:var(--sc-highest);opacity:.0}
 .updfx svg{position:relative;width:24px;height:24px;fill:none;stroke:var(--on-primary);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
 .updfx .ufx-arrow{animation:ufxBob 1.2s ease-in-out infinite}
 .updfx .ufx-check{display:none}
@@ -647,7 +647,7 @@ body::before{
 .updfx .ufx-sub{font-size:calc(12px*var(--ts));color:var(--on-surface-variant);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .updfx .ufx-track{position:relative;height:12px;overflow:hidden}
 .updfx .ufx-track::before{content:"";position:absolute;left:0;right:0;top:50%;height:3px;margin-top:-1.5px;border-radius:3px;background:var(--outline-variant)}
-.updfx .ufx-fill{position:absolute;left:0;top:0;height:12px;width:38%;background:linear-gradient(90deg,var(--primary),var(--tertiary,var(--primary)));-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='34' height='12' viewBox='0 0 34 12'%3E%3Cpath d='M0 6Q8.5-1 17 6T34 6' fill='none' stroke='black' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E") repeat-x 0 0/34px 12px;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='34' height='12' viewBox='0 0 34 12'%3E%3Cpath d='M0 6Q8.5-1 17 6T34 6' fill='none' stroke='black' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E") repeat-x 0 0/34px 12px;animation:ufxWave .9s linear infinite,ufxSlide 1.8s cubic-bezier(.45,0,.25,1) infinite;border-radius:6px}
+.updfx .ufx-fill{position:absolute;left:0;top:0;height:12px;width:38%;background:var(--primary);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='34' height='12' viewBox='0 0 34 12'%3E%3Cpath d='M0 6Q8.5-1 17 6T34 6' fill='none' stroke='black' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E") repeat-x 0 0/34px 12px;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='34' height='12' viewBox='0 0 34 12'%3E%3Cpath d='M0 6Q8.5-1 17 6T34 6' fill='none' stroke='black' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E") repeat-x 0 0/34px 12px;animation:ufxWave .9s linear infinite,ufxSlide 1.8s cubic-bezier(.45,0,.25,1) infinite;border-radius:6px}
 .updfx.det .ufx-fill{animation:ufxWave .9s linear infinite;width:var(--p,0%);transition:width .4s ease}
 .updfx.done .ufx-fill{animation:ufxWave .9s linear infinite;width:100%;transition:width .4s ease}
 @keyframes ufxMorph{0%{border-radius:50%}20%{border-radius:28% 72% 60% 40%/40% 40% 60% 60%}40%{border-radius:18%}60%{border-radius:62% 38% 30% 70%/60% 30% 70% 40%}80%{border-radius:34% 66% 50% 50%/50% 34% 66% 50%}100%{border-radius:50%}}
@@ -2134,7 +2134,7 @@ body::before{
 
   /* ---------- settings screen ---------- */
   var settingsDlg = $("settings");
-  var APP_VERSION = "1.16.5";
+  var APP_VERSION = "1.16.6";
   function radioBtn(cls, label, checked, onPick, extra){
     var b = el("button", cls + " state");
     b.type = "button";
