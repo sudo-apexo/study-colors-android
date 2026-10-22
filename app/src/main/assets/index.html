@@ -629,6 +629,37 @@ body::before{
   .tile .foot span{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
   .tile .foot svg{width:20px;height:20px}
 }
+
+/* ---- update loading card ---- */
+.updfx{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));z-index:200;display:flex;align-items:center;gap:16px;width:min(420px,calc(100vw - 32px));padding:14px 20px 14px 14px;border-radius:calc(28px*var(--rs));background:color-mix(in srgb,var(--surface-container-high,#fff) 90%,transparent);border:1px solid var(--glass-edge,var(--outline-variant));-webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4);box-shadow:0 12px 40px rgba(0,0,0,.28);color:var(--on-surface);transform:translate(-50%,40px) scale(.9);opacity:0;pointer-events:none;transition:transform .45s cubic-bezier(.2,1.3,.4,1),opacity .25s}
+.updfx.on{transform:translate(-50%,0) scale(1);opacity:1}
+.updfx .ufx-shape{position:relative;flex:0 0 auto;width:52px;height:52px;display:grid;place-items:center}
+.updfx .ufx-blob{position:absolute;inset:0;background:conic-gradient(from 0deg,var(--primary),var(--tertiary,var(--primary)),var(--primary-container),var(--primary));animation:ufxMorph 2.4s cubic-bezier(.45,0,.25,1) infinite,ufxSpin 4.8s linear infinite;transition:background .3s}
+.updfx .ufx-blob::after{content:"";position:absolute;inset:6px;border-radius:inherit;background:var(--surface-container-high,var(--surface));opacity:.0}
+.updfx svg{position:relative;width:24px;height:24px;fill:none;stroke:var(--on-primary);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.updfx .ufx-arrow{animation:ufxBob 1.2s ease-in-out infinite}
+.updfx .ufx-check{display:none}
+.updfx.done .ufx-arrow{display:none}
+.updfx.done .ufx-check{display:block;stroke-dasharray:24;animation:ufxDraw .5s ease-out both}
+.updfx.done .ufx-blob{animation:ufxPop .5s cubic-bezier(.2,1.4,.4,1) both;border-radius:50%}
+.updfx .ufx-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:7px}
+.updfx .ufx-title{font-weight:600;font-size:calc(15px*var(--ts));line-height:1.2}
+.updfx .ufx-sub{font-size:calc(12px*var(--ts));color:var(--on-surface-variant);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.updfx .ufx-track{position:relative;height:12px;overflow:hidden}
+.updfx .ufx-track::before{content:"";position:absolute;left:0;right:0;top:50%;height:3px;margin-top:-1.5px;border-radius:3px;background:var(--outline-variant)}
+.updfx .ufx-fill{position:absolute;left:0;top:0;height:12px;width:38%;background:linear-gradient(90deg,var(--primary),var(--tertiary,var(--primary)));-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='34' height='12' viewBox='0 0 34 12'%3E%3Cpath d='M0 6Q8.5-1 17 6T34 6' fill='none' stroke='black' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E") repeat-x 0 0/34px 12px;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='34' height='12' viewBox='0 0 34 12'%3E%3Cpath d='M0 6Q8.5-1 17 6T34 6' fill='none' stroke='black' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E") repeat-x 0 0/34px 12px;animation:ufxWave .9s linear infinite,ufxSlide 1.8s cubic-bezier(.45,0,.25,1) infinite;border-radius:6px}
+.updfx.det .ufx-fill{animation:ufxWave .9s linear infinite;width:var(--p,0%);transition:width .4s ease}
+.updfx.done .ufx-fill{animation:ufxWave .9s linear infinite;width:100%;transition:width .4s ease}
+@keyframes ufxMorph{0%{border-radius:50%}20%{border-radius:28% 72% 60% 40%/40% 40% 60% 60%}40%{border-radius:18%}60%{border-radius:62% 38% 30% 70%/60% 30% 70% 40%}80%{border-radius:34% 66% 50% 50%/50% 34% 66% 50%}100%{border-radius:50%}}
+@keyframes ufxSpin{to{transform:rotate(360deg)}}
+@keyframes ufxBob{0%,100%{transform:translateY(-2px)}50%{transform:translateY(3px)}}
+@keyframes ufxWave{to{-webkit-mask-position:-34px 0;mask-position:-34px 0}}
+@keyframes ufxSlide{0%{left:-40%}100%{left:100%}}
+@keyframes ufxDraw{from{stroke-dashoffset:24}to{stroke-dashoffset:0}}
+@keyframes ufxPop{0%{transform:scale(.7)}100%{transform:scale(1)}}
+.updfx .ufx-blob{will-change:transform,border-radius}
+[data-motion="reduced"] .updfx .ufx-blob,[data-motion="reduced"] .updfx .ufx-arrow,[data-motion="reduced"] .updfx .ufx-fill{animation:none!important}
+[data-motion="reduced"] .updfx .ufx-fill{width:100%}
 </style>
 
 <header class="appbar">
@@ -2077,7 +2108,7 @@ body::before{
 
   /* ---------- settings screen ---------- */
   var settingsDlg = $("settings");
-  var APP_VERSION = "1.16.3";
+  var APP_VERSION = "1.16.4";
   function radioBtn(cls, label, checked, onPick, extra){
     var b = el("button", cls + " state");
     b.type = "button";
@@ -2801,6 +2832,50 @@ body::before{
   startAccounts();
   setInterval(checkReminders, 3600000);
 })();
+
+  /* update loading card: watches the Update button and shows a special animation */
+  (function(){
+    var card = document.createElement("div");
+    card.className = "updfx"; card.setAttribute("role","status"); card.setAttribute("aria-live","polite");
+    card.innerHTML = '<div class="ufx-shape"><div class="ufx-blob"></div>' +
+      '<svg viewBox="0 0 24 24" aria-hidden="true"><path class="ufx-arrow" d="M12 5v10M7.5 11l4.5 4.5 4.5-4.5M6 19.5h12"/><path class="ufx-check" d="M6 12.5l4 4 8-9"/></svg></div>' +
+      '<div class="ufx-text"><span class="ufx-title"></span><div class="ufx-track"><div class="ufx-fill"></div></div><span class="ufx-sub"></span></div>';
+    document.body.appendChild(card);
+    var title = card.querySelector(".ufx-title"), sub = card.querySelector(".ufx-sub");
+    var shown = false, minUntil = 0, hideTimer = null, doneAt = 0;
+    function msgOf(u){
+      var w = u.parentElement, m = w && w.nextElementSibling;
+      return m && m.classList.contains("acct-msg") ? m.textContent : "";
+    }
+    function hide(){ shown = false; doneAt = 0; card.classList.remove("on","done","det"); }
+    function tick(){
+      var u = document.getElementById("updBtn"); if (!u) return;
+      var label = u.textContent.trim(), msg = msgOf(u);
+      var busy = u.disabled && /check|download|updat/i.test(label);
+      if (busy){
+        clearTimeout(hideTimer); doneAt = 0;
+        if (!shown){ shown = true; minUntil = Date.now() + 1600; card.classList.remove("done"); }
+        card.classList.add("on");
+        title.textContent = label.replace(/\u2026|\.\.\./g,"");
+        sub.textContent = msg || "Please wait";
+        var pm = /(\d{1,3})\s*%/.exec(msg);
+        if (pm){ card.classList.add("det"); card.style.setProperty("--p", Math.min(100, +pm[1]) + "%"); }
+        else card.classList.remove("det");
+        return;
+      }
+      if (!shown) return;
+      if (Date.now() < minUntil) return;
+      if (!doneAt){
+        if (/newest|latest|up to date/i.test(msg)){
+          doneAt = Date.now(); card.classList.add("done"); card.classList.remove("det");
+          title.textContent = "You're up to date"; sub.textContent = msg;
+        } else { hide(); }
+        return;
+      }
+      if (Date.now() - doneAt > 1500) hide();
+    }
+    setInterval(tick, 150);
+  })();
 </script>
 
 </body>
