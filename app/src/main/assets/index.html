@@ -660,6 +660,22 @@ body::before{
 .updfx .ufx-blob{will-change:transform,border-radius}
 [data-motion="reduced"] .updfx .ufx-blob,[data-motion="reduced"] .updfx .ufx-arrow,[data-motion="reduced"] .updfx .ufx-fill{animation:none!important}
 [data-motion="reduced"] .updfx .ufx-fill{width:100%}
+
+/* ---- skeleton loading ---- */
+.skel-tile{list-style:none;border-radius:calc(24px*var(--rs));min-height:132px;position:relative;overflow:hidden;background:var(--surface-container-high,rgba(128,128,128,.15));border:1px solid var(--glass-edge,var(--outline-variant))}
+.skel-tile::before,#overview.skeleton::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 20%,color-mix(in srgb,var(--on-surface) 12%,transparent) 50%,transparent 80%);transform:translateX(-100%);animation:skelSweep 1.4s ease-in-out infinite}
+.skel-tile i{position:absolute;left:16px;top:18px;width:55%;height:16px;border-radius:8px;background:color-mix(in srgb,var(--on-surface) 12%,transparent)}
+.skel-tile b{position:absolute;left:16px;bottom:16px;width:30%;height:12px;border-radius:6px;background:color-mix(in srgb,var(--on-surface) 9%,transparent)}
+.skel-tile:nth-child(2n)::before{animation-delay:.15s}.skel-tile:nth-child(3n)::before{animation-delay:.3s}
+#overview.skeleton{position:relative;overflow:hidden}
+#overview.skeleton>*{opacity:0}
+#overview.skeleton::before{content:"";position:absolute;left:24px;right:24px;top:30px;height:14px;border-radius:8px;background:color-mix(in srgb,var(--on-surface) 12%,transparent);box-shadow:0 38px 0 -2px color-mix(in srgb,var(--on-surface) 9%,transparent),0 38px 0 0 transparent}
+@keyframes skelSweep{to{transform:translateX(100%)}}
+[data-motion="reduced"] .skel-tile::before,[data-motion="reduced"] #overview.skeleton::after{animation:none}
+@media (max-width:600px){
+  .set-btns .btn.filled{flex:1 1 100%;width:100%;min-height:calc(56px*var(--ts));font-size:calc(16px*var(--ts));font-weight:600;border-radius:calc(28px*var(--rs))}
+  .set-btns .btn{min-height:calc(52px*var(--ts))}
+}
 </style>
 
 <header class="appbar">
@@ -986,6 +1002,7 @@ body::before{
 
   /* ---------- state ---------- */
   var state = null;      // { subjects:[{id,name,color,ex?}], seeded:bool }
+  var bootSkel = true;   // brief skeleton on first paint
   var booted = false;    // true once we know what to show
   var dirty = false;     // user changed something this visit
   var activeId = null;
@@ -1149,6 +1166,7 @@ body::before{
     sync.detail = detail || "";
     syncEl.dataset.mode = mode;
     $("syncTxt").textContent = SYNC_LABELS[mode] || "";
+    if (typeof render === "function" && !state.subjects.length && sync.user) render();
     syncEl.title = SYNC_TITLES[mode] || "";
     syncEl.setAttribute("aria-label", (SYNC_TITLES[mode] || "Account"));
     if (openNode === accountDlg) renderAccount();
@@ -1461,7 +1479,7 @@ body::before{
   function render(){
     var subs = state.subjects;
     var hasEx = subs.some(function(s){ return s.ex; });
-    banner.hidden = !(booted && hasEx);
+    banner.hidden = !(booted && !bootSkel && hasEx);
     var counts = countColors(subs);
     if (filter && !counts[filter]) filter = "";
     var q = query.trim().toLowerCase();
@@ -1471,10 +1489,18 @@ body::before{
       return true;
     });
     list = sortList(list);
-    toolbar.hidden = !(booted && subs.length);
+    toolbar.hidden = !(booted && !bootSkel && subs.length);
     sortLabel.textContent = sortLabelText();
     grid.textContent = "";
-
+    var skel = !booted || bootSkel || (!!sync.user && sync.status === "syncing" && !subs.length);
+    $("overview").classList.toggle("skeleton", skel);
+    if (skel){
+      emptystate.hidden = true;
+      for (var k = 0; k < 6; k++){ var sk = el("li", "skel-tile"); sk.setAttribute("aria-hidden","true"); sk.appendChild(el("i")); sk.appendChild(el("b")); grid.appendChild(sk); }
+      grid.setAttribute("aria-busy","true");
+      return;
+    }
+    grid.removeAttribute("aria-busy");
     if (!booted){
       emptystate.hidden = false;
       emptyText.textContent = "Loading your subjects…";
@@ -2108,7 +2134,7 @@ body::before{
 
   /* ---------- settings screen ---------- */
   var settingsDlg = $("settings");
-  var APP_VERSION = "1.16.4";
+  var APP_VERSION = "1.16.5";
   function radioBtn(cls, label, checked, onPick, extra){
     var b = el("button", cls + " state");
     b.type = "button";
@@ -2830,6 +2856,7 @@ body::before{
   resetHistory();
   render();
   startAccounts();
+  setTimeout(function(){ bootSkel = false; render(); }, 450);
   setInterval(checkReminders, 3600000);
 })();
 
