@@ -2227,7 +2227,7 @@ html.themeswap *,html.themeswap *::before,html.themeswap *::after{transition:non
 
   /* ---------- settings screen ---------- */
   var settingsDlg = $("settings");
-  var APP_VERSION = "1.17.3";
+  var APP_VERSION = "1.17.4";
   function radioBtn(cls, label, checked, onPick, extra){
     var b = el("button", cls + " state");
     b.type = "button";
@@ -3010,26 +3010,16 @@ html.themeswap *,html.themeswap *::before,html.themeswap *::after{transition:non
 
   /* ---------- sounds (made with the browser's audio, no files) ---------- */
   var audioCtx = null;
-  var dropBuf = null;
-  function makeReverseDrop(c){
-    var sr = c.sampleRate, len = Math.floor(sr * 0.5), buf = c.createBuffer(1, len, sr), d = buf.getChannelData(0);
-    function bubble(at, f0, rise, tau, vol){          // a bubble's pitch climbs quickly while it fades: the "bloop"
-      var n0 = Math.floor(at * sr), ph = 0;
-      for (var i = 0; n0 + i < len; i++){
-        var t = i / sr, f = f0 * (1 + rise * t);
-        ph += 2 * Math.PI * f / sr;
-        d[n0 + i] += Math.sin(ph) * Math.exp(-t / tau) * vol * Math.min(1, t * 900);
-      }
-    }
-    bubble(0.000, 640, 11, 0.050, 0.6);
-    bubble(0.085, 780, 7, 0.028, 0.25);               // smaller follow-up drop
-    bubble(0.150, 1100, 6, 0.020, 0.12);
-    for (var i = 0; i < Math.floor(sr * 0.012); i++) d[i] += (Math.random() * 2 - 1) * 0.35 * (1 - i / (sr * 0.012)); // tiny splash click
-    var e1 = Math.floor(sr * 0.09), e2 = Math.floor(sr * 0.19);                                                       // soft room echoes
-    for (var j = len - 1; j >= 0; j--){ d[j] += (j >= e1 ? d[j - e1] * 0.22 : 0) + (j >= e2 ? d[j - e2] * 0.1 : 0); }
-    var mx = 0; for (var k = 0; k < len; k++) mx = Math.max(mx, Math.abs(d[k]));
-    for (var m = 0; m < len; m++) d[m] = d[m] / (mx || 1) * 0.6;
-        return buf;
+  // Delete sound: a real water-drip recording (freesound_community, "water-drip-45622"), trimmed to 0.3 s.
+  var DRIP_B64 = "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";
+  var dripBuf = null, dripLoading = false;
+  function loadDrip(c){
+    if (dripBuf || dripLoading) return; dripLoading = true;
+    try {
+      var bin = atob(DRIP_B64), u = new Uint8Array(bin.length);
+      for (var i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+      c.decodeAudioData(u.buffer, function(buf){ dripBuf = buf; }, function(){ dripLoading = false; });
+    } catch(e){ dripLoading = false; }
   }
   function playSound(kind){
     if (prefs.sound === "off") return;
@@ -3037,6 +3027,7 @@ html.themeswap *,html.themeswap *::before,html.themeswap *::after{transition:non
       var AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
       if (!audioCtx) audioCtx = new AC();
       if (audioCtx.state === "suspended") audioCtx.resume();
+      loadDrip(audioCtx);
       var c = audioCtx, t0 = c.currentTime + 0.01, out = c.createGain();
       out.gain.value = 0.9; out.connect(c.destination);
       function tone(type, f0, f1, start, dur, vol){
@@ -3052,14 +3043,21 @@ html.themeswap *,html.themeswap *::before,html.themeswap *::after{transition:non
       if (kind === "add"){            // bubbly "pop": quick upward blip plus a tiny sparkle
         tone("sine", 360, 880, 0, 0.11, 0.34);
         tone("sine", 1320, 1760, 0.07, 0.07, 0.12);
-      } else {                        // a normal water drop: a "plip" with a little bubble ring
-        if (!dropBuf || dropBuf.sampleRate !== c.sampleRate) dropBuf = makeReverseDrop(c);
-        var src = c.createBufferSource(), lp = c.createBiquadFilter(), g = c.createGain();
-        src.buffer = dropBuf; lp.type = "lowpass"; lp.frequency.value = 5200; g.gain.value = 0.9;
-        src.connect(lp); lp.connect(g); g.connect(out); src.start(t0);
+      } else {                        // delete: the water drip recording (falls back to a small synthesized plip until it has loaded)
+        if (dripBuf){
+          var src = c.createBufferSource(), g = c.createGain();
+          src.buffer = dripBuf; g.gain.value = 1; src.connect(g); g.connect(out); src.start(t0);
+        } else {
+          tone("sine", 700, 1500, 0, 0.09, 0.3);
+        }
       }
     } catch(e){}
   }
+
+  document.addEventListener("pointerdown", function once(){
+    document.removeEventListener("pointerdown", once, true);
+    try { var AC = window.AudioContext || window.webkitAudioContext; if (AC && prefs.sound !== "off"){ if (!audioCtx) audioCtx = new AC(); loadDrip(audioCtx); } } catch(e){}
+  }, true);
 
   /* ---------- right-click menu (long-press on phones) ---------- */
   var ctx = document.createElement("div");
