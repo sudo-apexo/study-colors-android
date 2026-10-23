@@ -2234,7 +2234,7 @@ html.themeswap *,html.themeswap *::before,html.themeswap *::after{transition:non
 
   /* ---------- settings screen ---------- */
   var settingsDlg = $("settings");
-  var APP_VERSION = "1.17.6";
+  var APP_VERSION = "1.18.0";
   function radioBtn(cls, label, checked, onPick, extra){
     var b = el("button", cls + " state");
     b.type = "button";
@@ -2913,6 +2913,9 @@ html.themeswap *,html.themeswap *::before,html.themeswap *::after{transition:non
   /* Google: the system browser does the sign-in, the app only receives the result. */
   function googleToken(job){
     var url = window.STUDY_AUTH_HELPER_URL;
+    // The sign-in page on GitHub has no settings of its own: the app hands them over in the part of the
+    // address after "#", which browsers never send to any server.
+    try { url += "#cfg=" + btoa(unescape(encodeURIComponent(JSON.stringify(window.STUDY_FIREBASE_CONFIG)))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""); } catch(e){}
     if (window.studyDesktop && typeof window.studyDesktop.googleSignIn === "function") return window.studyDesktop.googleSignIn(url);
     if (window.AndroidBridge && typeof window.AndroidBridge.googleSignIn !== "undefined"){
       return new Promise(function(resolve, reject){
