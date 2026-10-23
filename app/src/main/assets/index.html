@@ -2227,7 +2227,7 @@ html.themeswap *,html.themeswap *::before,html.themeswap *::after{transition:non
 
   /* ---------- settings screen ---------- */
   var settingsDlg = $("settings");
-  var APP_VERSION = "1.17.1";
+  var APP_VERSION = "1.17.2";
   function radioBtn(cls, label, checked, onPick, extra){
     var b = el("button", cls + " state");
     b.type = "button";
@@ -3010,6 +3010,28 @@ html.themeswap *,html.themeswap *::before,html.themeswap *::after{transition:non
 
   /* ---------- sounds (made with the browser's audio, no files) ---------- */
   var audioCtx = null;
+  var dropBuf = null;
+  function makeReverseDrop(c){
+    var sr = c.sampleRate, len = Math.floor(sr * 0.5), buf = c.createBuffer(1, len, sr), d = buf.getChannelData(0);
+    function bubble(at, f0, rise, tau, vol){          // a bubble's pitch climbs quickly while it fades: the "bloop"
+      var n0 = Math.floor(at * sr), ph = 0;
+      for (var i = 0; n0 + i < len; i++){
+        var t = i / sr, f = f0 * (1 + rise * t);
+        ph += 2 * Math.PI * f / sr;
+        d[n0 + i] += Math.sin(ph) * Math.exp(-t / tau) * vol * Math.min(1, t * 900);
+      }
+    }
+    bubble(0.000, 520, 9, 0.040, 0.55);
+    bubble(0.085, 780, 7, 0.028, 0.25);               // smaller follow-up drop
+    bubble(0.150, 1100, 6, 0.020, 0.12);
+    for (var i = 0; i < Math.floor(sr * 0.012); i++) d[i] += (Math.random() * 2 - 1) * 0.35 * (1 - i / (sr * 0.012)); // tiny splash click
+    var e1 = Math.floor(sr * 0.09), e2 = Math.floor(sr * 0.19);                                                       // soft room echoes
+    for (var j = len - 1; j >= 0; j--){ d[j] += (j >= e1 ? d[j - e1] * 0.22 : 0) + (j >= e2 ? d[j - e2] * 0.1 : 0); }
+    var mx = 0; for (var k = 0; k < len; k++) mx = Math.max(mx, Math.abs(d[k]));
+    for (var m = 0; m < len; m++) d[m] = d[m] / (mx || 1) * 0.6;
+    var a2 = Array.prototype.slice.call(d, 0, len); a2.reverse(); for (var r = 0; r < len; r++) d[r] = a2[r];       // reverse
+    return buf;
+  }
   function playSound(kind){
     if (prefs.sound === "off") return;
     try {
@@ -3031,19 +3053,11 @@ html.themeswap *,html.themeswap *::before,html.themeswap *::after{transition:non
       if (kind === "add"){            // bubbly "pop": quick upward blip plus a tiny sparkle
         tone("sine", 360, 880, 0, 0.11, 0.34);
         tone("sine", 1320, 1760, 0.07, 0.07, 0.12);
-      } else {                        // a water drop played backwards: the sound swells up, then is sucked in and cut off
-        function rev(f0, f1, start, dur, vol){
-          var o = c.createOscillator(), g = c.createGain(), e = t0 + start + dur;
-          o.type = "sine";
-          o.frequency.setValueAtTime(f0, t0 + start);
-          o.frequency.exponentialRampToValueAtTime(f1, e);       // pitch falls (a drop's pitch rises)
-          g.gain.setValueAtTime(0.0001, t0 + start);
-          g.gain.exponentialRampToValueAtTime(vol, e - 0.004);   // slowly swells...
-          g.gain.setValueAtTime(0.0001, e);                      // ...then stops dead, like a reversed plop
-          o.connect(g); g.connect(out); o.start(t0 + start); o.stop(e + 0.02);
-        }
-        rev(900, 380, 0, 0.13, 0.12);     // reversed little ripple
-        rev(1650, 420, 0.1, 0.24, 0.36);  // reversed main drop
+      } else {                        // a real-sounding water drop (bubble "bloop" + splash), then played backwards
+        if (!dropBuf || dropBuf.sampleRate !== c.sampleRate) dropBuf = makeReverseDrop(c);
+        var src = c.createBufferSource(), lp = c.createBiquadFilter(), g = c.createGain();
+        src.buffer = dropBuf; lp.type = "lowpass"; lp.frequency.value = 5200; g.gain.value = 0.9;
+        src.connect(lp); lp.connect(g); g.connect(out); src.start(t0);
       }
     } catch(e){}
   }
