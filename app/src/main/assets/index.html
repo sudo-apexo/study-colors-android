@@ -902,7 +902,7 @@ html.themeswap *,html.themeswap *::before,html.themeswap *::after{transition:non
       <button class="switch state" id="motionSwitch" type="button" role="switch" aria-labelledby="lblMotion" aria-checked="false"></button>
     </div>
     <div class="set-row">
-      <div class="lbl"><b id="lblSound">Sounds</b><span>A pop when you add a subject, a swoosh when you delete one</span></div>
+      <div class="lbl"><b id="lblSound">Sounds</b><span>A pop when you add a subject, a reversed water drop when you delete one</span></div>
       <button class="switch state" id="soundSwitch" type="button" role="switch" aria-labelledby="lblSound" aria-checked="true"></button>
     </div>
   </section>
@@ -2227,7 +2227,7 @@ html.themeswap *,html.themeswap *::before,html.themeswap *::after{transition:non
 
   /* ---------- settings screen ---------- */
   var settingsDlg = $("settings");
-  var APP_VERSION = "1.17.0";
+  var APP_VERSION = "1.17.1";
   function radioBtn(cls, label, checked, onPick, extra){
     var b = el("button", cls + " state");
     b.type = "button";
@@ -3031,13 +3031,19 @@ html.themeswap *,html.themeswap *::before,html.themeswap *::after{transition:non
       if (kind === "add"){            // bubbly "pop": quick upward blip plus a tiny sparkle
         tone("sine", 360, 880, 0, 0.11, 0.34);
         tone("sine", 1320, 1760, 0.07, 0.07, 0.12);
-      } else {                        // "swoosh-thud": falling tone and a short breath of noise
-        tone("triangle", 440, 95, 0, 0.2, 0.3);
-        var len = Math.floor(c.sampleRate * 0.16), buf = c.createBuffer(1, len, c.sampleRate), d = buf.getChannelData(0);
-        for (var i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len);
-        var src = c.createBufferSource(), f = c.createBiquadFilter(), g2 = c.createGain();
-        src.buffer = buf; f.type = "bandpass"; f.frequency.setValueAtTime(2400, t0); f.frequency.exponentialRampToValueAtTime(500, t0 + 0.16); f.Q.value = 0.8;
-        g2.gain.value = 0.22; src.connect(f); f.connect(g2); g2.connect(out); src.start(t0);
+      } else {                        // a water drop played backwards: the sound swells up, then is sucked in and cut off
+        function rev(f0, f1, start, dur, vol){
+          var o = c.createOscillator(), g = c.createGain(), e = t0 + start + dur;
+          o.type = "sine";
+          o.frequency.setValueAtTime(f0, t0 + start);
+          o.frequency.exponentialRampToValueAtTime(f1, e);       // pitch falls (a drop's pitch rises)
+          g.gain.setValueAtTime(0.0001, t0 + start);
+          g.gain.exponentialRampToValueAtTime(vol, e - 0.004);   // slowly swells...
+          g.gain.setValueAtTime(0.0001, e);                      // ...then stops dead, like a reversed plop
+          o.connect(g); g.connect(out); o.start(t0 + start); o.stop(e + 0.02);
+        }
+        rev(900, 380, 0, 0.13, 0.12);     // reversed little ripple
+        rev(1650, 420, 0.1, 0.24, 0.36);  // reversed main drop
       }
     } catch(e){}
   }
