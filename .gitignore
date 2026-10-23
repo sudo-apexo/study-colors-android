@@ -6,3 +6,5 @@ local.properties
 captures/
 .cxx/
 *.apk
+
+app/src/main/assets/firebase-config.js

@@ -17,6 +17,17 @@ jobs:
       - name: Get the code
         uses: actions/checkout@v4
 
+      # Your Firebase settings are kept in a GitHub secret, not in the code.
+      - name: Write the Firebase settings
+        env:
+          CFG: ${{ secrets.FIREBASE_CONFIG_JS }}
+        run: |
+          if [ -z "$CFG" ]; then
+            echo "::error::The secret FIREBASE_CONFIG_JS is missing. Add it under Settings > Secrets and variables > Actions (see SETUP-ACCOUNTS.md in the other repo)."
+            exit 1
+          fi
+          printf '%s\n' "$CFG" > app/src/main/assets/firebase-config.js
+
       - name: Set up Java
         uses: actions/setup-java@v5
         with:

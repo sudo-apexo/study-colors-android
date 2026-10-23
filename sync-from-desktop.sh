@@ -15,8 +15,9 @@ fi
 
 DIR="$(dirname "$SRC")"
 cp "$SRC" "$DEST"
-# Sign-in files that the page loads next to itself.
-for f in study-sync.js firebase-config.js; do
+# Sign-in code that the page loads next to itself. The Firebase settings (firebase-config.js) are NOT copied:
+# the GitHub build writes them from the FIREBASE_CONFIG_JS secret, so they never sit in this repository.
+for f in study-sync.js; do
   if [ ! -f "$DIR/$f" ]; then echo "Cannot find $DIR/$f"; exit 1; fi
   cp "$DIR/$f" "app/src/main/assets/$f"
 done
