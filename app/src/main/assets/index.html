@@ -729,6 +729,25 @@ html,*{scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--on-surface) 
 .updfx .ufx-blob{will-change:auto}
 [data-motion="reduced"] .upd-dot::after,[data-motion="reduced"] .upd-ico::after{animation:none;opacity:0}
 html.themeswap *,html.themeswap *::before,html.themeswap *::after{transition:none!important}
+.chip .pct{margin-left:6px;padding:1px 7px;border-radius:999px;font-size:calc(11px*var(--ts));font-weight:600;background:color-mix(in srgb,var(--on-surface) 10%,transparent);color:var(--on-surface-variant)}
+.chip[aria-pressed="true"] .pct{background:color-mix(in srgb,currentColor 16%,transparent);color:inherit}
+
+/* ---- right-click / long-press menu ---- */
+.ctx{position:fixed;z-index:300;min-width:220px;max-width:calc(100vw - 16px);padding:6px;border-radius:calc(20px*var(--rs));background:color-mix(in srgb,var(--sc-high) 80%,transparent);-webkit-backdrop-filter:blur(26px) saturate(1.5);backdrop-filter:blur(26px) saturate(1.5);border:1px solid var(--glass-edge,var(--outline-variant));box-shadow:0 16px 48px rgba(0,0,0,.32);color:var(--on-surface);transform-origin:var(--ox,0) var(--oy,0);animation:ctxIn .16s var(--ease)}
+.ctx[hidden]{display:none}
+@keyframes ctxIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:none}}
+.ctx button.it{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:0;background:transparent;color:inherit;font:inherit;font-size:calc(14px*var(--ts));padding:10px 12px;border-radius:calc(14px*var(--rs));cursor:pointer}
+.ctx button.it:hover,.ctx button.it:focus-visible{background:color-mix(in srgb,var(--primary) 16%,transparent);outline:none}
+.ctx button.it.danger{color:var(--error)}
+.ctx button.it svg{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ctx .sep{height:1px;margin:5px 8px;background:var(--outline-variant);opacity:.7}
+.ctx .dots{display:flex;flex-wrap:wrap;gap:7px;padding:8px 10px 6px;max-width:260px}
+.ctx .dots button{width:24px;height:24px;border-radius:50%;border:2px solid transparent;padding:0;cursor:pointer;background:var(--bg);transition:transform .12s}
+.ctx .dots button:hover,.ctx .dots button:focus-visible{transform:scale(1.18);outline:none}
+.ctx .dots button[aria-pressed="true"]{border-color:var(--on-surface)}
+.ctx .dots button.none{background:transparent;border:2px dashed var(--outline)}
+.ctx .hd{padding:8px 12px 2px;font-size:calc(11px*var(--ts));letter-spacing:.06em;text-transform:uppercase;color:var(--on-surface-variant);max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+[data-motion="reduced"] .ctx{animation:none}
 </style>
 
 <header class="appbar">
@@ -881,6 +900,10 @@ html.themeswap *,html.themeswap *::before,html.themeswap *::after{transition:non
     <div class="set-row">
       <div class="lbl"><b id="lblMotion">Reduce motion</b><span>Turns off animations</span></div>
       <button class="switch state" id="motionSwitch" type="button" role="switch" aria-labelledby="lblMotion" aria-checked="false"></button>
+    </div>
+    <div class="set-row">
+      <div class="lbl"><b id="lblSound">Sounds</b><span>A pop when you add a subject, a swoosh when you delete one</span></div>
+      <button class="switch state" id="soundSwitch" type="button" role="switch" aria-labelledby="lblSound" aria-checked="true"></button>
     </div>
   </section>
 
@@ -1063,13 +1086,13 @@ html.themeswap *,html.themeswap *::before,html.themeswap *::after{transition:non
   var activeId = null;
   var filter = "", query = "";
   var PREFS_KEY = "study-colors-prefs";
-  var prefs = { theme: "system", sort: "added", remind: true, notified: {}, accent: "green", font: "inter", fontCustom: "", nav: "side", navHide: "0", navW: "272", size: "m", shape: "round", motion: "auto" };
+  var prefs = { theme: "system", sort: "added", remind: true, notified: {}, accent: "green", font: "inter", sound: "on", fontCustom: "", nav: "side", navHide: "0", navW: "272", size: "m", shape: "round", motion: "auto" };
   try {
     var savedPrefs = JSON.parse(localStorage.getItem(PREFS_KEY) || "{}");
     if (typeof savedPrefs.theme === "string") prefs.theme = savedPrefs.theme;
     if (typeof savedPrefs.sort === "string") prefs.sort = savedPrefs.sort;
     if (typeof savedPrefs.remind === "boolean") prefs.remind = savedPrefs.remind;
-    ["accent", "font", "fontCustom", "size", "shape", "motion", "nav", "navHide", "navW"].forEach(function(k){ if (typeof savedPrefs[k] === "string") prefs[k] = savedPrefs[k]; });
+    ["accent", "font", "sound", "fontCustom", "size", "shape", "motion", "nav", "navHide", "navW"].forEach(function(k){ if (typeof savedPrefs[k] === "string") prefs[k] = savedPrefs[k]; });
     if (savedPrefs.notified && typeof savedPrefs.notified === "object") prefs.notified = savedPrefs.notified;
     // New look: move people still on the old pixel default to the smooth font, once.
     if (savedPrefs.skin !== "2" && (!savedPrefs.font || savedPrefs.font === "monocraft")) prefs.font = "inter";
@@ -1429,15 +1452,18 @@ html.themeswap *,html.themeswap *::before,html.themeswap *::after{transition:non
     if (!name) return;
     state.subjects.push({ id: uid(), name: name, color: "" });
     commit();
+    playSound("add");
   }
   function removeSubject(id){
     state.subjects = state.subjects.filter(function(s){ return s.id !== id; });
     commit();
+    playSound("delete");
     toast("Subject deleted", "Undo", undo);
   }
   function clearExamples(){
     state.subjects = state.subjects.filter(function(s){ return !s.ex; });
     commit();
+    playSound("delete");
     toast("Examples cleared", "Undo", undo);
   }
   function indexOfSubject(id){
@@ -1585,7 +1611,7 @@ html.themeswap *,html.themeswap *::before,html.themeswap *::after{transition:non
     checkReminders();
   }
 
-  function chipFor(key, label, n, bg){
+  function chipFor(key, label, n, bg, total){
     var chip = el("button", "chip state");
     chip.type = "button";
     chip.dataset.filter = key;
@@ -1594,7 +1620,9 @@ html.themeswap *,html.themeswap *::before,html.themeswap *::after{transition:non
     var dot = el("i", bg ? null : "none");
     if (bg) dot.style.background = bg;
     chip.appendChild(dot);
+    var pct = total ? Math.round(n / total * 100) : 0;
     chip.appendChild(document.createTextNode(label + " " + n));
+    var pc = el("span", "pct"); pc.textContent = pct + "%"; chip.appendChild(pc);
     return chip;
   }
 
@@ -1683,12 +1711,12 @@ html.themeswap *,html.themeswap *::before,html.themeswap *::after{transition:non
     var segs = [];
     COLORS.forEach(function(c){
       var n = counts[c.k]; if (!n) return;
-      segs.push({ n: n, color: c.bg, title: c.n + ": " + n });
-      legend.appendChild(chipFor(c.k, c.n, n, c.bg));
+      segs.push({ n: n, color: c.bg, title: c.n + ": " + n + " (" + Math.round(n / subs.length * 100) + "%)" });
+      legend.appendChild(chipFor(c.k, c.n, n, c.bg, subs.length));
     });
     if (counts.none){
-      segs.push({ n: counts.none, none: true, title: "No color yet: " + counts.none });
-      legend.appendChild(chipFor("none", "No color", counts.none, null));
+      segs.push({ n: counts.none, none: true, title: "No color yet: " + counts.none + " (" + Math.round(counts.none / subs.length * 100) + "%)" });
+      legend.appendChild(chipFor("none", "No color", counts.none, null, subs.length));
     }
     setWave(segs);
     bar.setAttribute("aria-label", subs.length + " subjects: " + (legend.textContent || "none yet"));
@@ -2199,7 +2227,7 @@ html.themeswap *,html.themeswap *::before,html.themeswap *::after{transition:non
 
   /* ---------- settings screen ---------- */
   var settingsDlg = $("settings");
-  var APP_VERSION = "1.16.16";
+  var APP_VERSION = "1.17.0";
   function radioBtn(cls, label, checked, onPick, extra){
     var b = el("button", cls + " state");
     b.type = "button";
@@ -2254,6 +2282,7 @@ html.themeswap *,html.themeswap *::before,html.themeswap *::after{transition:non
     if (prefs.font === "custom" && prefs.fontCustom && !$("fontCustomInput").value) $("fontCustomInput").value = prefs.fontCustom;
     $("fontCustomUse").setAttribute("aria-pressed", prefs.font === "custom" ? "true" : "false");
     $("motionSwitch").setAttribute("aria-checked", prefs.motion === "reduced" ? "true" : "false");
+    $("soundSwitch").setAttribute("aria-checked", prefs.sound === "off" ? "false" : "true");
     $("aboutLine").textContent = "Study Colors " + APP_VERSION + ". Built-in fonts are free under the SIL Open Font License.";
     var signedIn = !!(sync && sync.user);
     var cfg = accountsReady();
@@ -2349,6 +2378,7 @@ html.themeswap *,html.themeswap *::before,html.themeswap *::after{transition:non
   $("setClose").addEventListener("click", closeOverlay);
   $("setBack").addEventListener("click", closeOverlay);
   $("motionSwitch").addEventListener("click", function(){ pick("motion", prefs.motion === "reduced" ? "auto" : "reduced"); });
+  $("soundSwitch").addEventListener("click", function(){ pick("sound", prefs.sound === "off" ? "on" : "off"); if (prefs.sound !== "off") playSound("add"); });
 
 
 
@@ -2668,7 +2698,7 @@ html.themeswap *,html.themeswap *::before,html.themeswap *::after{transition:non
     }
   });
   $("resetLook").addEventListener("click", function(){
-    prefs.accent = "green"; prefs.font = "inter"; prefs.fontCustom = ""; $("fontCustomInput").value = ""; prefs.size = "m"; prefs.nav = "side"; prefs.navHide = "0"; prefs.navW = "272"; prefs.shape = "round"; prefs.motion = "auto"; prefs.theme = "system";
+    prefs.accent = "green"; prefs.sound = "on"; prefs.font = "inter"; prefs.fontCustom = ""; $("fontCustomInput").value = ""; prefs.size = "m"; prefs.nav = "side"; prefs.navHide = "0"; prefs.navW = "272"; prefs.shape = "round"; prefs.motion = "auto"; prefs.theme = "system";
     savePrefs(); applyTheme();
     toast("Appearance reset");
   });
@@ -2976,6 +3006,137 @@ html.themeswap *,html.themeswap *::before,html.themeswap *::after{transition:non
   }
   $("acctOut").addEventListener("click", function(){ leaveAccount("acctOut", false); });
   $("acctAdd").addEventListener("click", function(){ leaveAccount("acctAdd", true); });
+
+
+  /* ---------- sounds (made with the browser's audio, no files) ---------- */
+  var audioCtx = null;
+  function playSound(kind){
+    if (prefs.sound === "off") return;
+    try {
+      var AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
+      if (!audioCtx) audioCtx = new AC();
+      if (audioCtx.state === "suspended") audioCtx.resume();
+      var c = audioCtx, t0 = c.currentTime + 0.01, out = c.createGain();
+      out.gain.value = 0.9; out.connect(c.destination);
+      function tone(type, f0, f1, start, dur, vol){
+        var o = c.createOscillator(), g = c.createGain();
+        o.type = type;
+        o.frequency.setValueAtTime(f0, t0 + start);
+        o.frequency.exponentialRampToValueAtTime(f1, t0 + start + dur);
+        g.gain.setValueAtTime(0.0001, t0 + start);
+        g.gain.exponentialRampToValueAtTime(vol, t0 + start + 0.012);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + start + dur);
+        o.connect(g); g.connect(out); o.start(t0 + start); o.stop(t0 + start + dur + 0.02);
+      }
+      if (kind === "add"){            // bubbly "pop": quick upward blip plus a tiny sparkle
+        tone("sine", 360, 880, 0, 0.11, 0.34);
+        tone("sine", 1320, 1760, 0.07, 0.07, 0.12);
+      } else {                        // "swoosh-thud": falling tone and a short breath of noise
+        tone("triangle", 440, 95, 0, 0.2, 0.3);
+        var len = Math.floor(c.sampleRate * 0.16), buf = c.createBuffer(1, len, c.sampleRate), d = buf.getChannelData(0);
+        for (var i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len);
+        var src = c.createBufferSource(), f = c.createBiquadFilter(), g2 = c.createGain();
+        src.buffer = buf; f.type = "bandpass"; f.frequency.setValueAtTime(2400, t0); f.frequency.exponentialRampToValueAtTime(500, t0 + 0.16); f.Q.value = 0.8;
+        g2.gain.value = 0.22; src.connect(f); f.connect(g2); g2.connect(out); src.start(t0);
+      }
+    } catch(e){}
+  }
+
+  /* ---------- right-click menu (long-press on phones) ---------- */
+  var ctx = document.createElement("div");
+  ctx.className = "ctx"; ctx.hidden = true; ctx.setAttribute("role", "menu");
+  document.body.appendChild(ctx);
+  var IC = {
+    edit: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>',
+    left: '<path d="M15 6l-6 6 6 6"/>', right: '<path d="M9 6l6 6-6 6"/>',
+    copy: '<rect x="8" y="8" width="12" height="12" rx="3"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/>',
+    trash: '<path d="M5 7h14M10 11v6M14 11v6M7 7l1 12h8l1-12M9 7V5h6v2"/>',
+    plus: '<path d="M12 5v14M5 12h14"/>', search: '<circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/>',
+    sort: '<path d="M4 7h16M7 12h10M10 17h4"/>', theme: '<path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/>',
+    gear: '<circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/>',
+    undo: '<path d="M9 7L4 12l5 5"/><path d="M4 12h10a6 6 0 0 1 0 12" transform="translate(0 -6)"/>', all: '<path d="M5 12l5 5 9-10"/>'
+  };
+  function ctxItem(label, ic, fn, danger){
+    var b = document.createElement("button"); b.type = "button"; b.className = "it" + (danger ? " danger" : ""); b.setAttribute("role", "menuitem");
+    b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + IC[ic] + '</svg><span></span>';
+    b.lastChild.textContent = label;
+    b.addEventListener("click", function(){ closeCtx(); fn(); });
+    ctx.appendChild(b);
+  }
+  function ctxSep(){ var d = document.createElement("div"); d.className = "sep"; ctx.appendChild(d); }
+  function closeCtx(){ ctx.hidden = true; ctx.textContent = ""; }
+  function showCtx(x, y){
+    ctx.hidden = false;
+    var w = ctx.offsetWidth, h = ctx.offsetHeight, vw = innerWidth, vh = innerHeight;
+    var left = Math.min(x, vw - w - 8), top = Math.min(y, vh - h - 8);
+    if (left < 8) left = 8; if (top < 8) top = 8;
+    ctx.style.left = left + "px"; ctx.style.top = top + "px";
+    ctx.style.setProperty("--ox", Math.max(0, x - left) + "px"); ctx.style.setProperty("--oy", Math.max(0, y - top) + "px");
+    var first = ctx.querySelector("button"); if (first) first.focus({ preventScroll: true });
+  }
+  function subjectMenu(id, x, y){
+    var sj = findSubject(id); if (!sj) return;
+    ctx.textContent = "";
+    var hd = document.createElement("div"); hd.className = "hd"; hd.textContent = plainNote(sj.name); ctx.appendChild(hd);
+    var dots = document.createElement("div"); dots.className = "dots"; dots.setAttribute("role", "group"); dots.setAttribute("aria-label", "Color");
+    var nb = document.createElement("button"); nb.type = "button"; nb.className = "none"; nb.title = "No color"; nb.setAttribute("aria-label", "No color"); nb.setAttribute("aria-pressed", sj.color ? "false" : "true");
+    nb.addEventListener("click", function(){ closeCtx(); setColor(id, ""); }); dots.appendChild(nb);
+    COLORS.forEach(function(c){
+      var b = document.createElement("button"); b.type = "button"; b.style.setProperty("--bg", c.bg); b.title = c.n; b.setAttribute("aria-label", c.n);
+      b.setAttribute("aria-pressed", sj.color === c.k ? "true" : "false");
+      b.addEventListener("click", function(){ closeCtx(); setColor(id, c.k); });
+      dots.appendChild(b);
+    });
+    ctx.appendChild(dots); ctxSep();
+    ctxItem("Edit name, notes and exam", "edit", function(){ openSheet(id); });
+    if (prefs.sort === "added" && !filter && !query.trim()){
+      var i = indexOfSubject(id);
+      if (i > 0) ctxItem("Move earlier", "left", function(){ moveSubject(id, -1); });
+      if (i < state.subjects.length - 1) ctxItem("Move later", "right", function(){ moveSubject(id, 1); });
+    }
+    ctxItem("Duplicate", "copy", function(){
+      var c = JSON.parse(JSON.stringify(sj)); c.id = uid(); delete c.ex; c.t = Date.now();
+      c.name = (sj.name + " copy").slice(0, 80);
+      state.subjects.splice(indexOfSubject(id) + 1, 0, c); commit(); playSound("add");
+    });
+    ctxSep();
+    ctxItem("Delete subject", "trash", function(){ removeSubject(id); }, true);
+    showCtx(x, y);
+  }
+  function pageMenu(x, y){
+    ctx.textContent = "";
+    ctxItem("New subject", "plus", openDialog);
+    ctxItem("Search subjects", "search", function(){ searchInput.focus(); });
+    ctxItem("Change sort order", "sort", function(){ sortBtn.click(); });
+    if (filter) ctxItem("Show all colors", "all", function(){ filter = ""; render(); });
+    ctxSep();
+    ctxItem("Undo", "undo", undo);
+    ctxItem("Change theme", "theme", function(){ themeBtn.click(); });
+    ctxItem("Settings", "gear", function(){ openSettings(); });
+    showCtx(x, y);
+  }
+  document.addEventListener("contextmenu", function(e){
+    var t = e.target;
+    if (t.closest && t.closest("input,textarea,[contenteditable],.rte,.selbar,.ctx")){ if (t.closest(".ctx")) e.preventDefault(); return; }
+    e.preventDefault();
+    if (openNode) return;
+    if (press && press.active) return;
+    var tile = t.closest && t.closest(".tile");
+    if (tile && tile.dataset.id) subjectMenu(tile.dataset.id, e.clientX, e.clientY); else pageMenu(e.clientX, e.clientY);
+  });
+  document.addEventListener("pointerdown", function(e){ if (!ctx.hidden && !ctx.contains(e.target)) closeCtx(); }, true);
+  window.addEventListener("blur", closeCtx);
+  window.addEventListener("resize", closeCtx);
+  window.addEventListener("scroll", closeCtx, true);
+  document.addEventListener("keydown", function(e){
+    if (ctx.hidden) return;
+    if (e.key === "Escape"){ e.preventDefault(); e.stopPropagation(); closeCtx(); return; }
+    if (e.key === "ArrowDown" || e.key === "ArrowUp"){
+      e.preventDefault();
+      var items = [].slice.call(ctx.querySelectorAll("button")), i = items.indexOf(document.activeElement);
+      items[(i + (e.key === "ArrowDown" ? 1 : -1) + items.length) % items.length].focus();
+    }
+  }, true);
 
   /* ---------- start ---------- */
   applyTheme();
