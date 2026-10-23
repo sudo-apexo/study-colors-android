@@ -902,7 +902,7 @@ html.themeswap *,html.themeswap *::before,html.themeswap *::after{transition:non
       <button class="switch state" id="motionSwitch" type="button" role="switch" aria-labelledby="lblMotion" aria-checked="false"></button>
     </div>
     <div class="set-row">
-      <div class="lbl"><b id="lblSound">Sounds</b><span>A pop when you add a subject, a reversed water drop when you delete one</span></div>
+      <div class="lbl"><b id="lblSound">Sounds</b><span>A pop when you add a subject, a water drop when you delete one</span></div>
       <button class="switch state" id="soundSwitch" type="button" role="switch" aria-labelledby="lblSound" aria-checked="true"></button>
     </div>
   </section>
@@ -2227,7 +2227,7 @@ html.themeswap *,html.themeswap *::before,html.themeswap *::after{transition:non
 
   /* ---------- settings screen ---------- */
   var settingsDlg = $("settings");
-  var APP_VERSION = "1.17.2";
+  var APP_VERSION = "1.17.3";
   function radioBtn(cls, label, checked, onPick, extra){
     var b = el("button", cls + " state");
     b.type = "button";
@@ -3021,7 +3021,7 @@ html.themeswap *,html.themeswap *::before,html.themeswap *::after{transition:non
         d[n0 + i] += Math.sin(ph) * Math.exp(-t / tau) * vol * Math.min(1, t * 900);
       }
     }
-    bubble(0.000, 520, 9, 0.040, 0.55);
+    bubble(0.000, 640, 11, 0.050, 0.6);
     bubble(0.085, 780, 7, 0.028, 0.25);               // smaller follow-up drop
     bubble(0.150, 1100, 6, 0.020, 0.12);
     for (var i = 0; i < Math.floor(sr * 0.012); i++) d[i] += (Math.random() * 2 - 1) * 0.35 * (1 - i / (sr * 0.012)); // tiny splash click
@@ -3029,8 +3029,7 @@ html.themeswap *,html.themeswap *::before,html.themeswap *::after{transition:non
     for (var j = len - 1; j >= 0; j--){ d[j] += (j >= e1 ? d[j - e1] * 0.22 : 0) + (j >= e2 ? d[j - e2] * 0.1 : 0); }
     var mx = 0; for (var k = 0; k < len; k++) mx = Math.max(mx, Math.abs(d[k]));
     for (var m = 0; m < len; m++) d[m] = d[m] / (mx || 1) * 0.6;
-    var a2 = Array.prototype.slice.call(d, 0, len); a2.reverse(); for (var r = 0; r < len; r++) d[r] = a2[r];       // reverse
-    return buf;
+        return buf;
   }
   function playSound(kind){
     if (prefs.sound === "off") return;
@@ -3053,7 +3052,7 @@ html.themeswap *,html.themeswap *::before,html.themeswap *::after{transition:non
       if (kind === "add"){            // bubbly "pop": quick upward blip plus a tiny sparkle
         tone("sine", 360, 880, 0, 0.11, 0.34);
         tone("sine", 1320, 1760, 0.07, 0.07, 0.12);
-      } else {                        // a real-sounding water drop (bubble "bloop" + splash), then played backwards
+      } else {                        // a normal water drop: a "plip" with a little bubble ring
         if (!dropBuf || dropBuf.sampleRate !== c.sampleRate) dropBuf = makeReverseDrop(c);
         var src = c.createBufferSource(), lp = c.createBiquadFilter(), g = c.createGain();
         src.buffer = dropBuf; lp.type = "lowpass"; lp.frequency.value = 5200; g.gain.value = 0.9;
