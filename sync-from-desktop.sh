@@ -2,9 +2,9 @@
 # Copies the newest page and the sign-in files from the desktop repo (study-colors) into this app and
 # adds back the one line that loads the Android helper.
 #
-# Usage, from this folder:  ./sync-from-desktop.sh [path/to/study-colors/index.html]
+# Usage, from this folder:  ./sync-from-desktop.sh [path/to/study-colors/app/index.html]
 set -e
-SRC="${1:-../study-colors/index.html}"
+SRC="${1:-../study-colors/app/index.html}"
 DEST="app/src/main/assets/index.html"
 
 if [ ! -f "$SRC" ]; then

@@ -79,8 +79,23 @@ App code: MIT (`LICENSE`). Monocraft font: SIL Open Font License 1.1 (`OFL.txt`)
 
 ## Accounts and sync (optional)
 
-Sign in with email or Google to keep subjects in sync with the desktop app. Setup is a one-time Firebase project; see `SETUP-ACCOUNTS.md` in the desktop repo (https://github.com/sudo-apexo/study-colors). Put the same values in `app/src/main/assets/firebase-config.js` (or run `./sync-from-desktop.sh` after updating the desktop repo). Without it the app saves on the phone only.
+Sign in with email or Google to keep subjects in sync with the desktop app. Setup is a one-time Firebase project; see `docs/SETUP-ACCOUNTS.md` in the desktop repo (https://github.com/sudo-apexo/study-colors). The Firebase settings are **not** stored in this repository: add them once as a GitHub secret named `FIREBASE_CONFIG_JS` (Settings > Secrets and variables > Actions) and every build writes them into the app. Without it the build stops with a clear message.
 
 ## Settings
 
 Tap the gear in the top bar. Theme, accent color, font, text size, corner style, reminders, backup and account all live there. Run `./sync-from-desktop.sh` to bring in the latest page from the desktop repo.
+
+## Project layout
+
+```
+study-colors-android/
+├── app/src/main/
+│   ├── java/…/studycolors/   MainActivity, Updater (in-app updates), ProgressWidget
+│   ├── assets/               index.html (synced from the desktop repo), android-shim.js, study-sync.js
+│   ├── res/                  Icons, widget layout, colors, themes
+│   └── AndroidManifest.xml
+├── .github/workflows/build.yml   Builds StudyColors.apk on GitHub
+├── sync-from-desktop.sh      Copies the newest page from the desktop repo
+├── app/build.gradle, build.gradle, settings.gradle, gradle.properties
+└── study-colors.keystore     Signing key for personal installs (not for the Play Store)
+```
