@@ -984,6 +984,7 @@ html.themeswap *,html.themeswap *::before,html.themeswap *::after{transition:non
     </div>
     <p class="acct-msg err" id="acctSyncErr" hidden></p>
     <button class="btn outlined block state" id="acctRetry" type="button" hidden>Try syncing again</button>
+    <button class="btn outlined block state" id="acctAdd" type="button">Add another account</button>
     <button class="btn outlined block state" id="acctOut" type="button">Sign out</button>
     <div class="actions"><button class="btn state" id="acctClose" type="button">Close</button></div>
   </div>
@@ -2198,7 +2199,7 @@ html.themeswap *,html.themeswap *::before,html.themeswap *::after{transition:non
 
   /* ---------- settings screen ---------- */
   var settingsDlg = $("settings");
-  var APP_VERSION = "1.16.15";
+  var APP_VERSION = "1.16.16";
   function radioBtn(cls, label, checked, onPick, extra){
     var b = el("button", cls + " state");
     b.type = "button";
@@ -2936,19 +2937,21 @@ html.themeswap *,html.themeswap *::before,html.themeswap *::after{transition:non
   };
 
   /* Signing out: the subjects stay safe in the account, so they are removed from this device. */
+  var LABELS = { acctOut: "Sign out", acctAdd: "Add another account" };
   function disarmClear(){
     clearTimeout(clearTimer);
-    var b = $("acctOut");
-    b.classList.remove("armed");
-    b.textContent = "Sign out";
+    ["acctOut", "acctAdd"].forEach(function(id){ var b = $(id); b.classList.remove("armed"); b.textContent = LABELS[id]; });
   }
-  $("acctOut").addEventListener("click", function(){
-    var b = $("acctOut");
+  // Signing out removes this account's subjects from the device (they stay in the account).
+  // "Add another account" does the same, then goes straight to the sign-in form.
+  function leaveAccount(id, again){
+    var b = $(id);
     // Changes that have not reached the account yet would be lost: ask once more.
     var risky = sync.user && sync.status !== "synced" && state.subjects.some(function(x){ return !x.ex; });
     if (risky && !b.classList.contains("armed")){
+      disarmClear();
       b.classList.add("armed");
-      b.textContent = "Not synced yet. Tap again to sign out anyway";
+      b.textContent = "Not synced yet. Tap again to continue anyway";
       clearTimer = setTimeout(disarmClear, 5000);
       return;
     }
@@ -2959,9 +2962,20 @@ html.themeswap *,html.themeswap *::before,html.themeswap *::after{transition:non
     saveLocal();
     resetHistory();
     render();
-    var done = function(){ if (openNode === accountDlg) closeOverlay(); toast("Signed out. Your subjects are removed from this device and stay in your account."); };
+    var done = function(){
+      if (again){
+        setSync("signedout");
+        if (openNode === accountDlg) renderAccount();
+        toast("Your subjects stay in the account. Sign in with another one.");
+        return;
+      }
+      if (openNode === accountDlg) closeOverlay();
+      toast("Signed out. Your subjects are removed from this device and stay in your account.");
+    };
     if (SS) SS.signOut().then(done, done); else done();
-  });
+  }
+  $("acctOut").addEventListener("click", function(){ leaveAccount("acctOut", false); });
+  $("acctAdd").addEventListener("click", function(){ leaveAccount("acctAdd", true); });
 
   /* ---------- start ---------- */
   applyTheme();
