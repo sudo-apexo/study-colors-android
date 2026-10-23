@@ -728,6 +728,7 @@ html,*{scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--on-surface) 
 @keyframes updRing{0%{transform:scale(1);opacity:.55}100%{transform:scale(2.4);opacity:0}}
 .updfx .ufx-blob{will-change:auto}
 [data-motion="reduced"] .upd-dot::after,[data-motion="reduced"] .upd-ico::after{animation:none;opacity:0}
+html.themeswap *,html.themeswap *::before,html.themeswap *::after{transition:none!important}
 </style>
 
 <header class="appbar">
@@ -1887,9 +1888,12 @@ html,*{scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--on-surface) 
     system: '<svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M400-200v-80H160q-33 0-56.5-23.5T80-360v-400q0-33 23.5-56.5T160-840h640q33 0 56.5 23.5T880-760v400q0 33-23.5 56.5T800-280H560v80h40q17 0 28.5 11.5T640-160q0 17-11.5 28.5T600-120H360q-17 0-28.5-11.5T320-160q0-17 11.5-28.5T360-200h40ZM160-360h640v-400H160v400Zm0 0v-400 400Z"/></svg>',
     light: '<svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-360q50 0 85-35t35-85q0-50-35-85t-85-35q-50 0-85 35t-35 85q0 50 35 85t85 35Zm0 80q-83 0-141.5-58.5T280-480q0-83 58.5-141.5T480-680q83 0 141.5 58.5T680-480q0 83-58.5 141.5T480-280ZM80-440q-17 0-28.5-11.5T40-480q0-17 11.5-28.5T80-520h80q17 0 28.5 11.5T200-480q0 17-11.5 28.5T160-440H80Zm720 0q-17 0-28.5-11.5T760-480q0-17 11.5-28.5T800-520h80q17 0 28.5 11.5T920-480q0 17-11.5 28.5T880-440h-80ZM480-760q-17 0-28.5-11.5T440-800v-80q0-17 11.5-28.5T480-920q17 0 28.5 11.5T520-880v80q0 17-11.5 28.5T480-760Zm0 720q-17 0-28.5-11.5T440-80v-80q0-17 11.5-28.5T480-200q17 0 28.5 11.5T520-160v80q0 17-11.5 28.5T480-40ZM226-678l-43-42q-12-11-11.5-28t11.5-29q12-12 29-12t28 12l42 43q11 12 11 28t-11 28q-11 12-27.5 11.5T226-678Zm494 495-42-43q-11-12-11-28.5t11-27.5q11-12 27.5-11.5T734-282l43 42q12 11 11.5 28T777-183q-12 12-29 12t-28-12Zm-42-495q-12-11-11.5-27.5T678-734l42-43q11-12 28-11.5t29 11.5q12 12 12 29t-12 28l-43 42q-12 11-28 11t-28-11ZM183-183q-12-12-12-29t12-28l43-42q12-11 28.5-11t27.5 11q12 11 11.5 27.5T282-226l-42 43q-11 12-28 11.5T183-183Zm297-297Z"/></svg>'
   };
+  var swapTimer = null;
   function applyTheme(){
     if (!THEME_ICONS[prefs.theme]) prefs.theme = "system";
     var root = document.documentElement;
+    // Switch colors in one clean step: no transitions fighting the frosted layers while the theme flips.
+    root.classList.add("themeswap"); clearTimeout(swapTimer); swapTimer = setTimeout(function(){ root.classList.remove("themeswap"); }, 350);
     if (prefs.theme === "system") root.removeAttribute("data-theme"); else root.setAttribute("data-theme", prefs.theme);
     themeBtn.textContent = "";
     themeBtn.insertAdjacentHTML("beforeend", THEME_SVG[prefs.theme]);
@@ -1994,7 +1998,7 @@ html,*{scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--on-surface) 
     if (prefs.navHide === "1") root.setAttribute("data-navhide", "1"); else root.removeAttribute("data-navhide");
     var nw = Math.max(200, Math.min(420, parseInt(prefs.navW, 10) || 272));
     st.setProperty("--navw", nw + "px");
-    if (typeof renderSettings === "function") renderSettings();
+    if (typeof renderSettings === "function" && openNode === settingsDlg) renderSettings();
   }
   if (window.matchMedia){
     var mq = window.matchMedia("(prefers-color-scheme: dark)");
@@ -2194,7 +2198,7 @@ html,*{scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--on-surface) 
 
   /* ---------- settings screen ---------- */
   var settingsDlg = $("settings");
-  var APP_VERSION = "1.16.14";
+  var APP_VERSION = "1.16.15";
   function radioBtn(cls, label, checked, onPick, extra){
     var b = el("button", cls + " state");
     b.type = "button";
