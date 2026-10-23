@@ -647,6 +647,21 @@ body::before{
 #sideUpdate.has-upd .sl>span:first-child{color:var(--primary);font-weight:600}
 @keyframes updPulse{0%{box-shadow:0 0 0 2px var(--sc-high,#fff),0 0 0 2px color-mix(in srgb,var(--primary) 60%,transparent)}70%,100%{box-shadow:0 0 0 2px var(--sc-high,#fff),0 0 0 10px transparent}}
 [data-motion="reduced"] .upd-dot,[data-motion="reduced"] .upd-ico{animation:none}
+
+/* ---- font picker list ---- */
+.fontcustom{position:relative}
+.fontcustom .field{position:relative}
+.fontcustom .field input{padding-right:48px}
+.fontdrop{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:36px;height:36px;border:0;border-radius:50%;background:transparent;color:var(--on-surface-variant);display:grid;place-items:center;cursor:pointer;padding:0}
+.fontdrop svg{width:22px;height:22px;transition:transform .25s var(--ease)}
+.fontcustom.openpop .fontdrop svg{transform:rotate(180deg)}
+.fontpop{position:absolute;left:0;right:0;top:calc(100% - 8px);z-index:40;max-height:240px;overflow-y:auto;overscroll-behavior:contain;padding:6px;border-radius:calc(20px*var(--rs));background:color-mix(in srgb,var(--sc-high) 76%,transparent);-webkit-backdrop-filter:blur(28px) saturate(1.5);backdrop-filter:blur(28px) saturate(1.5);border:1px solid var(--glass-edge,var(--outline-variant));box-shadow:0 14px 40px rgba(0,0,0,.28)}
+.fontpop[hidden]{display:none}
+.fontpop button{display:block;width:100%;text-align:left;border:0;background:transparent;color:var(--on-surface);padding:9px 12px;border-radius:calc(12px*var(--rs));font:inherit;font-size:calc(14px*var(--ts));cursor:pointer}
+.fontpop button:hover,.fontpop button.act{background:color-mix(in srgb,var(--primary) 18%,transparent)}
+.fontpop .none{padding:10px 12px;color:var(--on-surface-variant);font-size:calc(13px*var(--ts))}
+html.scroll-lock{overflow:hidden;scrollbar-gutter:stable}
+.dialog,.sheet{overscroll-behavior:contain}
 /* ---- update loading card ---- */
 .updfx{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));z-index:200;display:flex;align-items:center;gap:16px;width:min(420px,calc(100vw - 32px));padding:14px 20px 14px 14px;border-radius:calc(28px*var(--rs));background:color-mix(in srgb,var(--sc-highest) 94%,transparent);border:1px solid var(--glass-edge,var(--outline-variant));-webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4);box-shadow:0 12px 40px rgba(0,0,0,.28);color:var(--on-surface);transform:translate(-50%,40px) scale(.9);opacity:0;pointer-events:none;transition:transform .45s cubic-bezier(.2,1.3,.4,1),opacity .25s}
 .updfx.on{transform:translate(-50%,0) scale(1);opacity:1}
@@ -824,10 +839,11 @@ body::before{
       <div class="fonts" role="radiogroup" aria-labelledby="lblFont" id="fonts"></div>
       <div class="fontcustom">
         <div class="field">
-          <input id="fontCustomInput" list="fontList" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="60" placeholder=" ">
+          <input id="fontCustomInput" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="60" placeholder=" ">
           <label for="fontCustomInput">Other font on this device</label>
+          <button class="fontdrop" id="fontDrop" type="button" tabindex="-1" aria-label="Show fonts"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 8.5h11L12 17.5z" fill="currentColor" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/></svg></button>
         </div>
-        <datalist id="fontList"></datalist>
+        <div class="fontpop" id="fontPop" role="listbox" hidden></div>
         <div class="set-btns">
           <button class="btn tonal state" id="fontCustomUse" type="button">Use this font</button>
           <button class="btn tonal state" id="fontBrowse" type="button" hidden>Browse installed fonts</button>
@@ -1688,6 +1704,7 @@ body::before{
     returnFocus = document.activeElement;
     scrim.hidden = false; node.hidden = false;
     openNode = node;
+    document.documentElement.classList.add("scroll-lock");
     requestAnimationFrame(function(){
       scrim.classList.add("open"); node.classList.add("open");
       (focusEl || node).focus({ preventScroll: true });
@@ -1698,6 +1715,7 @@ body::before{
     if (openNode === sheet) saveSheetFields();
     if (openNode === accountDlg && acct.google) cancelGoogle();
     var n = openNode; openNode = null;
+    document.documentElement.classList.remove("scroll-lock");
     n.classList.remove("open"); scrim.classList.remove("open");
     disarmDelete();
     disarmClear();
@@ -2160,7 +2178,7 @@ body::before{
 
   /* ---------- settings screen ---------- */
   var settingsDlg = $("settings");
-  var APP_VERSION = "1.16.11";
+  var APP_VERSION = "1.16.12";
   function radioBtn(cls, label, checked, onPick, extra){
     var b = el("button", cls + " state");
     b.type = "button";
@@ -2245,10 +2263,31 @@ body::before{
     }, 0);
   });
   /* Any font installed on this device */
+  var fontNames = [];
+  var fontPop = $("fontPop"), fontBox = fontPop.parentNode, fontIn = $("fontCustomInput");
+  function showFontPop(all){
+    var q = all ? "" : fontIn.value.trim().toLowerCase();
+    var list = fontNames.filter(function(n){ return !q || n.toLowerCase().indexOf(q) >= 0; }).slice(0, 200);
+    fontPop.textContent = "";
+    if (!list.length){ var d = document.createElement("div"); d.className = "none"; d.textContent = "No match. You can still type any font name."; fontPop.appendChild(d); }
+    list.forEach(function(n){
+      var b = document.createElement("button"); b.type = "button"; b.setAttribute("role","option"); b.textContent = n; b.style.fontFamily = '"' + n.replace(/"/g,"") + '"';
+      b.addEventListener("mousedown", function(e){ e.preventDefault(); });
+      b.addEventListener("click", function(){ fontIn.value = n; hideFontPop(); });
+      fontPop.appendChild(b);
+    });
+    fontPop.hidden = false; fontBox.classList.add("openpop");
+  }
+  function hideFontPop(){ fontPop.hidden = true; fontBox.classList.remove("openpop"); }
+  fontIn.addEventListener("focus", function(){ showFontPop(!fontIn.value.trim()); });
+  fontIn.addEventListener("input", function(){ showFontPop(false); });
+  fontIn.addEventListener("blur", function(){ setTimeout(hideFontPop, 120); });
+  fontIn.addEventListener("keydown", function(e){ if (e.key === "Escape" && !fontPop.hidden){ e.stopPropagation(); hideFontPop(); } });
+  $("fontDrop").addEventListener("mousedown", function(e){ e.preventDefault(); });
+  $("fontDrop").addEventListener("click", function(){ if (fontPop.hidden){ fontIn.focus(); showFontPop(true); } else hideFontPop(); });
   var COMMON_FONTS = ["Arial","Helvetica","Times New Roman","Georgia","Verdana","Tahoma","Trebuchet MS","Courier New","Comic Sans MS","Segoe UI","Roboto","Noto Sans","Noto Serif","Ubuntu","Cantarell","DejaVu Sans","DejaVu Serif","DejaVu Sans Mono","Liberation Sans","Liberation Serif","Fira Sans","Fira Code","Source Code Pro","Droid Sans Mono","Cutive Mono","Dancing Script","Coming Soon","Carrois Gothic SC"];
   (function(){
-    var dl = $("fontList");
-    COMMON_FONTS.forEach(function(n){ var o = document.createElement("option"); o.value = n; dl.appendChild(o); });
+    fontNames = COMMON_FONTS.slice();
     if (typeof navigator.queryLocalFonts === "function") $("fontBrowse").hidden = false;
   })();
   function fontInstalled(name){
@@ -2280,8 +2319,7 @@ body::before{
       var seen = {}, names = [];
       list.forEach(function(f){ if (f.family && !seen[f.family]){ seen[f.family] = 1; names.push(f.family); } });
       names.sort(function(a, b){ return a.localeCompare(b); });
-      var dl = $("fontList"); dl.textContent = "";
-      names.forEach(function(n){ var o = document.createElement("option"); o.value = n; dl.appendChild(o); });
+      fontNames = names; showFontPop(true);
       fontMsg(names.length + " fonts found. Start typing a name, or clear the box and pick from the list, then tap Use this font.", false);
       $("fontCustomInput").focus();
     }, function(){ fontMsg("Could not read the font list on this device. You can still type a font name.", true); });
