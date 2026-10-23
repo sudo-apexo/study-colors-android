@@ -748,6 +748,8 @@ html.themeswap *,html.themeswap *::before,html.themeswap *::after{transition:non
 .ctx .dots button.none{background:transparent;border:2px dashed var(--outline)}
 .ctx .hd{padding:8px 12px 2px;font-size:calc(11px*var(--ts));letter-spacing:.06em;text-transform:uppercase;color:var(--on-surface-variant);max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 [data-motion="reduced"] .ctx{animation:none}
+.tile .cname{display:flex;flex-direction:column;min-width:0;line-height:1.15}
+.tile .cname .lvl{font-size:calc(11px*var(--ts));font-weight:500;opacity:.85;letter-spacing:.01em}
 </style>
 
 <header class="appbar">
@@ -1020,6 +1022,8 @@ html.themeswap *,html.themeswap *::before,html.themeswap *::after{transition:non
   "use strict";
 
   var KEY = "study-colors-v1";
+  // How well you know a subject, from the first color (weakest) up to green (strongest).
+  var LEVELS = { red: "So weak", orange: "Weak", amber: "Getting there", yellow: "Okay", lime: "Good", lightgreen: "Very good", green: "Strong, nailed it" };
   var COLORS = [
     {k:"red",n:"Red",bg:"#D32F2F",fg:"#FFFFFF"},
     {k:"orange",n:"Orange",bg:"#F57C00",fg:"#1B1B1B"},
@@ -1541,7 +1545,7 @@ html.themeswap *,html.themeswap *::before,html.themeswap *::after{transition:non
     b.type = "button";
     b.dataset.id = s.id;
     if (c){ b.style.setProperty("--bg", c.bg); b.style.setProperty("--fg", c.fg); }
-    var label = plainNote(s.name) + ", " + (c ? c.n : "no color yet");
+    var label = plainNote(s.name) + ", " + (c ? c.n + (LEVELS[c.k] ? " (" + LEVELS[c.k] + ")" : "") : "no color yet");
     if (s.exam) label += ", " + examText(s.exam);
     b.setAttribute("aria-label", label + ". Open details.");
     b.appendChild((function(){ var n = el("span", "name"); renderInline(s.name, n, true); return n; })());
@@ -1552,7 +1556,10 @@ html.themeswap *,html.themeswap *::before,html.themeswap *::after{transition:non
     if (s.note) meta.appendChild(el("span", "note", plainNote(s.note.split("\n")[0])));
     if (meta.childNodes.length) bottom.appendChild(meta);
     var foot = el("span", "foot");
-    foot.appendChild(el("span", null, c ? c.n : "No color yet"));
+    var cn = el("span", "cname");
+    cn.appendChild(el("span", null, c ? c.n : "No color yet"));
+    if (c && LEVELS[c.k]) cn.appendChild(el("small", "lvl", LEVELS[c.k]));
+    foot.appendChild(cn);
     foot.appendChild(icon(ICON_PALETTE));
     bottom.appendChild(foot);
     b.appendChild(bottom);
@@ -1815,14 +1822,14 @@ html.themeswap *,html.themeswap *::before,html.themeswap *::after{transition:non
       var b = el("button", "swatch state");
       b.type = "button"; b.dataset.key = c.k;
       b.style.setProperty("--bg", c.bg); b.style.setProperty("--fg", c.fg);
-      b.setAttribute("aria-label", c.n); b.title = c.n;
+      b.setAttribute("aria-label", c.n + (LEVELS[c.k] ? ", " + LEVELS[c.k] : "")); b.title = c.n + (LEVELS[c.k] ? " \u2014 " + LEVELS[c.k] : "");
       var on = s.color === c.k;
       b.setAttribute("aria-pressed", on ? "true" : "false");
       if (on) b.appendChild(icon(ICON_CHECK));
       swatchesEl.appendChild(b);
     });
     var cur = BYKEY[s.color];
-    curEl.textContent = "Current: " + (cur ? cur.n : "no color yet");
+    curEl.textContent = "Current: " + (cur ? cur.n + (LEVELS[cur.k] ? " \u2014 " + LEVELS[cur.k] : "") : "no color yet");
   }
   swatchesEl.addEventListener("click", function(e){
     var b = e.target.closest(".swatch"); if (!b || !activeId) return;
@@ -2227,7 +2234,7 @@ html.themeswap *,html.themeswap *::before,html.themeswap *::after{transition:non
 
   /* ---------- settings screen ---------- */
   var settingsDlg = $("settings");
-  var APP_VERSION = "1.17.4";
+  var APP_VERSION = "1.17.5";
   function radioBtn(cls, label, checked, onPick, extra){
     var b = el("button", cls + " state");
     b.type = "button";
