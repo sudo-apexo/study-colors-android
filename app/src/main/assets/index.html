@@ -719,6 +719,15 @@ html,*{scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--on-surface) 
   .set-btns .btn.filled{flex:1 1 100%;width:100%;min-height:calc(56px*var(--ts));font-size:calc(16px*var(--ts));font-weight:600;border-radius:calc(28px*var(--rs))}
   .set-btns .btn{min-height:calc(52px*var(--ts))}
 }
+
+/* ---- no constant repaints behind the glass: animate only while visible, ring pulse uses transform/opacity ---- */
+.updfx:not(.on){visibility:hidden}
+.updfx:not(.on) .ufx-blob,.updfx:not(.on) .ufx-arrow,.updfx:not(.on) .ufx-fill{animation:none!important}
+.upd-dot,.upd-ico{animation:none!important;box-shadow:0 0 0 2px var(--sc-high,#fff)}
+.upd-dot::after,.upd-ico::after{content:"";position:absolute;inset:0;border-radius:50%;background:var(--primary);opacity:.55;animation:updRing 1.8s ease-out infinite}
+@keyframes updRing{0%{transform:scale(1);opacity:.55}100%{transform:scale(2.4);opacity:0}}
+.updfx .ufx-blob{will-change:auto}
+[data-motion="reduced"] .upd-dot::after,[data-motion="reduced"] .upd-ico::after{animation:none;opacity:0}
 </style>
 
 <header class="appbar">
@@ -1710,6 +1719,7 @@ html,*{scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--on-surface) 
     scrim.hidden = false; node.hidden = false;
     openNode = node;
     document.documentElement.classList.add("scroll-lock");
+    stopWave();   // nothing animates behind the frosted dialog
     requestAnimationFrame(function(){
       scrim.classList.add("open"); node.classList.add("open");
       (focusEl || node).focus({ preventScroll: true });
@@ -1721,6 +1731,7 @@ html,*{scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--on-surface) 
     if (openNode === accountDlg && acct.google) cancelGoogle();
     var n = openNode; openNode = null;
     document.documentElement.classList.remove("scroll-lock");
+    if (motionOK() && waveEls.length) startWave();
     n.classList.remove("open"); scrim.classList.remove("open");
     disarmDelete();
     disarmClear();
@@ -2183,7 +2194,7 @@ html,*{scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--on-surface) 
 
   /* ---------- settings screen ---------- */
   var settingsDlg = $("settings");
-  var APP_VERSION = "1.16.13";
+  var APP_VERSION = "1.16.14";
   function radioBtn(cls, label, checked, onPick, extra){
     var b = el("button", cls + " state");
     b.type = "button";
