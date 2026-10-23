@@ -1022,8 +1022,8 @@ html.themeswap *,html.themeswap *::before,html.themeswap *::after{transition:non
   "use strict";
 
   var KEY = "study-colors-v1";
-  // How well you know a subject, from the first color (weakest) up to green (strongest).
-  var LEVELS = { red: "So weak", orange: "Weak", amber: "Getting there", yellow: "Okay", lime: "Good", lightgreen: "Very good", green: "Strong, nailed it" };
+  // How well you know a subject: every color is one step up, from red (weakest) to the last color (the top).
+  var LEVELS = { red: "So weak", orange: "Weak", amber: "Getting there", yellow: "Okay", lime: "Good", lightgreen: "Very good", green: "Strong", teal: "Solid", cyan: "Sharp", blue: "Excellent", indigo: "Expert", purple: "Master", pink: "Brilliant", brown: "Elite", gray: "Legend", charcoal: "Flawless, the top" };
   var COLORS = [
     {k:"red",n:"Red",bg:"#D32F2F",fg:"#FFFFFF"},
     {k:"orange",n:"Orange",bg:"#F57C00",fg:"#1B1B1B"},
@@ -2234,7 +2234,7 @@ html.themeswap *,html.themeswap *::before,html.themeswap *::after{transition:non
 
   /* ---------- settings screen ---------- */
   var settingsDlg = $("settings");
-  var APP_VERSION = "1.17.5";
+  var APP_VERSION = "1.17.6";
   function radioBtn(cls, label, checked, onPick, extra){
     var b = el("button", cls + " state");
     b.type = "button";
